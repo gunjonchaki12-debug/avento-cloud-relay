@@ -142,6 +142,11 @@
                 <i class="fa-solid fa-download"></i>
                 <span class="hidden sm:inline">Install App</span>
             </button>
+            <!-- Wi-Fi Settings Modal Toggle -->
+            <button onclick="openWifiModal()" class="px-3 py-1.5 bg-slate-800/80 hover:bg-cyan-600/30 border border-slate-700 hover:border-cyan-400 text-cyan-300 hover:text-white rounded-xl text-xs font-semibold transition-all flex items-center gap-1.5 shadow-sm" title="Configure Robot Wi-Fi">
+                <i class="fa-solid fa-wifi text-cyan-400"></i>
+                <span class="hidden sm:inline">Wi-Fi Settings</span>
+            </button>
             <!-- Gemini API Key Modal Toggle -->
             <button onclick="openApiKeyModal()" class="px-3 py-1.5 bg-slate-800/80 hover:bg-amber-600/30 border border-slate-700 hover:border-amber-400 text-amber-300 hover:text-white rounded-xl text-xs font-semibold transition-all flex items-center gap-1.5 shadow-sm">
                 <i class="fa-solid fa-key text-amber-400"></i>
@@ -236,9 +241,14 @@
                             <span class="sig-bar active h-3"></span>
                         </div>
                     </div>
-                    <div class="my-1">
-                        <span id="metricRssiVal" class="orbitron text-base font-bold text-emerald-300">-52 dBm</span>
-                        <span id="metricWifiSub" class="block text-[10px] text-slate-400 truncate" title="Connected">GOUTAM CHANDRA CHAKI</span>
+                    <div class="my-1 flex items-center justify-between">
+                        <div>
+                            <span id="metricRssiVal" class="orbitron text-base font-bold text-emerald-300">-52 dBm</span>
+                            <span id="metricWifiSub" class="block text-[10px] text-slate-400 truncate" title="Connected">GOUTAM CHANDRA CHAKI</span>
+                        </div>
+                        <button onclick="openWifiModal()" title="Change Wi-Fi Network" class="px-2 py-1 bg-cyan-500/10 hover:bg-cyan-500/25 text-cyan-300 border border-cyan-500/30 hover:border-cyan-400 rounded-lg text-[10px] font-mono flex items-center gap-1 transition-all">
+                            <i class="fa-solid fa-gear text-[10px]"></i> Change
+                        </button>
                     </div>
                     <div class="text-[9px] font-mono text-cyan-400/90 truncate">IP: <span id="metricIpVal">192.168.1.10</span></div>
                 </div>
@@ -744,6 +754,57 @@
                 </button>
                 <button id="btnTestApiKey" onclick="testAndSaveApiKey()" class="px-4 py-1.5 bg-gradient-to-r from-amber-500 to-amber-600 hover:from-amber-400 hover:to-amber-500 text-xs font-bold text-slate-950 rounded-xl shadow-md transition-all flex items-center gap-1.5">
                     <i class="fa-solid fa-check"></i> Save & Test Key
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- ========================================== -->
+    <!-- WI-FI CONFIGURATION MODAL -->
+    <!-- ========================================== -->
+    <div id="wifiModal" class="hidden fixed inset-0 z-50 bg-slate-950/80 backdrop-blur-sm flex items-center justify-center p-4">
+        <div class="glass-panel border border-cyan-500/40 rounded-2xl w-full max-w-md p-5 shadow-2xl relative">
+            <!-- Modal Header -->
+            <div class="flex items-center justify-between border-b border-slate-700/80 pb-3 mb-4">
+                <div class="flex items-center gap-2.5">
+                    <div class="w-8 h-8 rounded-lg bg-cyan-500/20 text-cyan-400 flex items-center justify-center text-sm shadow-[0_0_10px_rgba(6,182,212,0.3)]">
+                        <i class="fa-solid fa-wifi"></i>
+                    </div>
+                    <h3 class="orbitron text-base font-bold text-white tracking-wide">ROBOT WI-FI SETTINGS</h3>
+                </div>
+                <button onclick="closeWifiModal()" class="w-8 h-8 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-400 hover:text-white flex items-center justify-center transition-colors">
+                    <i class="fa-solid fa-xmark"></i>
+                </button>
+            </div>
+
+            <!-- Modal Body -->
+            <div class="flex flex-col gap-3">
+                <p class="text-xs text-slate-300">
+                    Connect Avento to a new 2.4GHz Wi-Fi network. Credentials are saved permanently to robot internal flash memory (NVS).
+                </p>
+                <div class="flex flex-col gap-1.5">
+                    <label class="text-[11px] font-mono text-slate-400">Wi-Fi Name (SSID)</label>
+                    <input id="inputWifiSsid" type="text" placeholder="e.g. MyHomeWiFi_2.4G" class="w-full px-3 py-2 bg-slate-900/90 border border-slate-700 rounded-xl text-xs font-mono text-white placeholder-slate-500 focus:outline-none focus:border-cyan-400">
+                </div>
+                <div class="flex flex-col gap-1.5">
+                    <label class="text-[11px] font-mono text-slate-400">Wi-Fi Password</label>
+                    <div class="relative">
+                        <input id="inputWifiPass" type="password" placeholder="Enter password (leave blank if open)" class="w-full px-3 py-2 bg-slate-900/90 border border-slate-700 rounded-xl text-xs font-mono text-white placeholder-slate-500 focus:outline-none focus:border-cyan-400 pr-10">
+                        <button type="button" onclick="toggleWifiPassVisibility()" class="absolute right-2.5 top-2 text-slate-400 hover:text-slate-200 text-xs">
+                            <i id="wifiPassEyeIcon" class="fa-solid fa-eye"></i>
+                        </button>
+                    </div>
+                </div>
+                <div id="wifiSaveResult" class="text-xs font-mono min-h-[1.25rem]"></div>
+            </div>
+
+            <!-- Modal Footer -->
+            <div class="pt-4 border-t border-slate-700/80 flex items-center justify-end gap-2 mt-2">
+                <button onclick="closeWifiModal()" class="px-3.5 py-1.5 bg-slate-800 hover:bg-slate-700 border border-slate-700 text-xs font-semibold text-slate-300 rounded-xl transition-all">
+                    Cancel
+                </button>
+                <button id="btnSaveWifi" onclick="saveAndConnectWifi()" class="px-4 py-1.5 bg-gradient-to-r from-cyan-500 to-sky-600 hover:from-cyan-400 hover:to-sky-500 text-xs font-bold text-white rounded-xl shadow-md transition-all flex items-center gap-1.5">
+                    <i class="fa-solid fa-satellite-dish"></i> Save & Connect
                 </button>
             </div>
         </div>
