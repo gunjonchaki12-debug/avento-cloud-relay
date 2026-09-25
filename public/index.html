@@ -3614,24 +3614,12 @@ function initWorldwideRelay() {
                 if (streamImg) {
                     const blob = new Blob([event.data], { type: 'image/jpeg' });
                     const newUrl = URL.createObjectURL(blob);
+                    const oldUrl = currentFrameUrl;
+                    streamImg.onload = () => {
+                        if (oldUrl) URL.revokeObjectURL(oldUrl);
+                    };
                     streamImg.src = newUrl;
-                    if (currentFrameUrl) {
-                        URL.revokeObjectURL(currentFrameUrl);
-                    }
                     currentFrameUrl = newUrl;
-
-                    // Instant pipeline: pump frame directly to MediaPipe with zero interval delay
-                    if (isFingerGestureActive && isMediaPipeReady && mpHands && !isMediaPipeProcessing && streamImg.complete) {
-                        try {
-                            mpCtx.drawImage(streamImg, 0, 0, 320, 240);
-                            isMediaPipeProcessing = true;
-                            mpHands.send({ image: mpCanvas }).then(() => {
-                                isMediaPipeProcessing = false;
-                            }).catch(() => {
-                                isMediaPipeProcessing = false;
-                            });
-                        } catch(e) {}
-                    }
                 }
             }
         };
