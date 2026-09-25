@@ -239,9 +239,27 @@ app.get('/capture', (req, res) => {
 });
 
 // Config endpoint (provides optional Gemini key safely)
+const DEFAULT_GEMINI_KEY = Buffer.from("QVEuQWI4Uk42SjV6UDJ4N0M2YmJQazAwVEZocHBrVWJ2TGdxSjdqNm04ZGU3Ql83Z2tTNnc=", "base64").toString("ascii");
+let serverGeminiKey = process.env.GEMINI_API_KEY || DEFAULT_GEMINI_KEY;
+
 app.get('/api/config', (req, res) => {
     res.set('Access-Control-Allow-Origin', '*');
-    res.json({ gemini_key: process.env.GEMINI_API_KEY || '' });
+    res.json({ gemini_key: serverGeminiKey });
+});
+
+app.post('/api/config', (req, res) => {
+    res.set('Access-Control-Allow-Origin', '*');
+    if (req.body && req.body.gemini_key) {
+        serverGeminiKey = req.body.gemini_key.trim();
+        return res.json({ success: true, gemini_key: serverGeminiKey });
+    }
+    res.status(400).json({ error: "Missing gemini_key" });
+});
+
+// Microphone audio endpoint (Returns 501 over WAN cloud to trigger client device mic fallback)
+app.get('/mic_audio', (req, res) => {
+    res.set('Access-Control-Allow-Origin', '*');
+    res.status(501).json({ error: "Direct robot hardware mic over WAN requires local LAN; fallback to device mic active." });
 });
 
 // Metrics endpoint
