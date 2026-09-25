@@ -43,7 +43,7 @@
             border: 2px solid rgba(244, 63, 94, 0.5);
         }
         .stream-container { position: relative; width: 100%; max-width: 440px; margin: 0 auto; border-radius: 12px; overflow: hidden; transform: translateZ(0); }
-        #camStream { width: 100%; display: block; border-radius: 12px; transform: translateZ(0); backface-visibility: hidden; image-rendering: auto; filter: brightness(1.18) contrast(1.10) saturate(1.12); }
+        #camStream { width: 100%; display: block; border-radius: 12px; transform: translateZ(0); backface-visibility: hidden; image-rendering: auto; filter: brightness(1.35) contrast(1.12) saturate(1.18); }
         #canvasOverlay { position: absolute; top: 0; left: 0; width: 100%; height: 100%; z-index: 10; pointer-events: none; transform: translateZ(0); }
         .recording-pulse { animation: pulse-red 1.5s infinite; }
         @keyframes pulse-red {
@@ -1728,8 +1728,8 @@ let candidateStartTime = 0;
 let lastTriggeredGesture = 0;        // 0 = none, 1 = Time, 2 = Weather (prevents duplicate executions)
 let lastGestureTriggerTime = 0;      // Timestamp of last execution
 let neutralPoseStartTime = 0;        // Tracks duration of neutral hand/absence
-const GESTURE_CONFIRM_MS = 190;      // Fast 190ms hold for near-instant confirmation
-const NEUTRAL_RESET_MS = 180;        // Fast 180ms clearance window to re-arm immediately
+const GESTURE_CONFIRM_MS = 140;      // Fast 140ms hold for instant responsive confirmation
+const NEUTRAL_RESET_MS = 140;        // Fast 180ms clearance window to re-arm immediately
 let lastHandCentroid = { x: 0, y: 0 };
 let currentDetectedFingers = 0;
 let isCanvasTainted = false;
@@ -1855,8 +1855,8 @@ function initMediaPipe() {
         mpHands.setOptions({
             maxNumHands: 1,
             modelComplexity: 1,
-            minDetectionConfidence: 0.60,
-            minTrackingConfidence: 0.60
+            minDetectionConfidence: 0.38,
+            minTrackingConfidence: 0.38
         });
         mpHands.onResults(onMediaPipeResults);
         isMediaPipeReady = true;
@@ -1894,7 +1894,7 @@ function classifyMediaPipeFingers(landmarks) {
 
     const palmScale = dist(wrist, middleMcp) || 0.15;
 
-    // Helper: test if digit is extended
+    // Robust angle-invariant digit extension check
     function isDigitExtended(tipIdx, pipIdx, mcpIdx) {
         const tip = landmarks[tipIdx];
         const pip = landmarks[pipIdx];
@@ -1907,11 +1907,24 @@ function classifyMediaPipeFingers(landmarks) {
         const dTipMcp = dist(tip, mcp);
         const dPipMcp = dist(pip, mcp);
 
-        // Tip must be higher than PIP (upward pointing), and farther than PIP from wrist/palm/MCP
-        const isUpward = (tip.y < pip.y - 0.015);
-        const isFarther = (dTipWrist > dPipWrist * 1.08) && (dTipPalm > dPipPalm * 1.10) && (dTipMcp > dPipMcp * 1.05);
+        // Tip must extend farther from wrist, palm and MCP than PIP
+        const isFarther = (dTipWrist > dPipWrist * 1.04) && (dTipPalm > dPipPalm * 1.06) && (dTipMcp > dPipMcp * 1.03);
+        // Allows both vertical and natural forward extension toward desk robot
+        const isForwardOrUp = (tip.y < pip.y + 0.04);
 
-        return isUpward && isFarther;
+        return isForwardOrUp && isFarther;
+    }
+
+    // Curled digit check: tip is folded toward palm or MCP
+    function isDigitCurled(tipIdx, pipIdx, mcpIdx) {
+        const tip = landmarks[tipIdx];
+        const pip = landmarks[pipIdx];
+        const mcp = landmarks[mcpIdx];
+        const dTipPalm = dist(tip, palmCenter);
+        const dPipPalm = dist(pip, palmCenter);
+        const dTipWrist = dist(tip, wrist);
+        const dPipWrist = dist(pip, wrist);
+        return (dTipPalm <= dPipPalm * 1.14) || (dTipWrist <= dPipWrist * 1.06) || (dist(tip, mcp) < palmScale * 0.60);
     }
 
     // Thumb check:
@@ -1924,12 +1937,14 @@ function classifyMediaPipeFingers(landmarks) {
 
     const indexExtended = isDigitExtended(8, 6, 5);
     const middleExtended = isDigitExtended(12, 10, 9);
-    const ringExtended = isDigitExtended(16, 14, 13);
-    const pinkyExtended = isDigitExtended(20, 18, 17);
+    const middleCurled = isDigitCurled(12, 10, 9);
+    const ringCurled = isDigitCurled(16, 14, 13);
+    const pinkyCurled = isDigitCurled(20, 18, 17);
 
     // EXACT GESTURE 1: ☝️ Index Finger (Time)
-    if (indexExtended && !middleExtended && !ringExtended && !pinkyExtended) {
-        if (!thumbExtended || thumbTip.y > indexMcp.y) {
+    // High-precision: Index extended while middle, ring, pinky curled
+    if (indexExtended && (middleCurled || !middleExtended) && ringCurled && pinkyCurled) {
+        if (!thumbExtended || thumbTip.y > indexMcp.y || dist(thumbTip, palmCenter) < palmScale * 0.75) {
             return {
                 count: 1,
                 label: "☝️ 1 FINGER (TIME)",
@@ -1941,9 +1956,10 @@ function classifyMediaPipeFingers(landmarks) {
     }
 
     // EXACT GESTURE 2: ✌️ Index + Middle (Weather / Peace sign)
-    if (indexExtended && middleExtended && !ringExtended && !pinkyExtended) {
+    // High-precision: Index & Middle extended while ring & pinky curled
+    if (indexExtended && middleExtended && ringCurled && pinkyCurled) {
         const tipSep = dist(landmarks[8], landmarks[12]);
-        if (tipSep >= palmScale * 0.20) {
+        if (tipSep >= palmScale * 0.12) {
             return {
                 count: 2,
                 label: "✌️ 2 FINGERS (WEATHER)",
@@ -2050,7 +2066,9 @@ function initFingerGestureRecognition() {
             if (!img.complete || img.naturalWidth === 0) return;
             try {
                 if (isMediaPipeReady && mpHands && !isMediaPipeProcessing) {
+                    mpCtx.filter = "brightness(1.22) contrast(1.15)";
                     mpCtx.drawImage(img, 0, 0, 320, 240);
+                    mpCtx.filter = "none";
                     isMediaPipeProcessing = true;
                     mpHands.send({ image: mpCanvas }).then(() => {
                         isMediaPipeProcessing = false;
@@ -3402,7 +3420,9 @@ function initWorldwideRelay() {
                         createImageBitmap(blob).then(bitmap => {
                             if (!isMediaPipeProcessing) {
                                 isMediaPipeProcessing = true;
+                                mpCtx.filter = "brightness(1.22) contrast(1.15)";
                                 mpCtx.drawImage(bitmap, 0, 0, 320, 240);
+                                mpCtx.filter = "none";
                                 mpHands.send({ image: mpCanvas }).catch(err => {
                                     console.warn("[MediaPipe] send error:", err);
                                 }).finally(() => {
