@@ -554,7 +554,7 @@ setTimeout(initWorldwideRelay, 500);
             border: 2px solid rgba(244, 63, 94, 0.5);
         }
         .stream-container { position: relative; width: 100%; max-width: 440px; margin: 0 auto; border-radius: 12px; overflow: hidden; transform: translateZ(0); }
-        #camStream { width: 100%; display: block; border-radius: 12px; transform: translateZ(0); backface-visibility: hidden; image-rendering: auto; }
+        #camStream { width: 100%; display: block; border-radius: 12px; transform: translateZ(0); backface-visibility: hidden; image-rendering: auto; filter: brightness(1.18) contrast(1.10) saturate(1.12); }
         #canvasOverlay { position: absolute; top: 0; left: 0; width: 100%; height: 100%; z-index: 10; pointer-events: none; transform: translateZ(0); }
         .recording-pulse { animation: pulse-red 1.5s infinite; }
         @keyframes pulse-red {
@@ -1965,8 +1965,8 @@ let candidateStartTime = 0;
 let lastTriggeredGesture = 0;        // 0 = none, 1 = Time, 2 = Weather (prevents duplicate executions)
 let lastGestureTriggerTime = 0;      // Timestamp of last execution
 let neutralPoseStartTime = 0;        // Tracks duration of neutral hand/absence
-const GESTURE_CONFIRM_MS = 380;      // Hold steady for 380ms to confirm intent
-const NEUTRAL_RESET_MS = 350;        // Must lower hand / 0 fingers for 350ms to allow re-triggering the same gesture
+const GESTURE_CONFIRM_MS = 190;      // Fast 190ms hold for near-instant confirmation
+const NEUTRAL_RESET_MS = 180;        // Fast 180ms clearance window to re-arm immediately
 let lastHandCentroid = { x: 0, y: 0 };
 let currentDetectedFingers = 0;
 let isCanvasTainted = false;
@@ -2092,8 +2092,8 @@ function initMediaPipe() {
         mpHands.setOptions({
             maxNumHands: 1,
             modelComplexity: 1,
-            minDetectionConfidence: 0.50,
-            minTrackingConfidence: 0.50
+            minDetectionConfidence: 0.60,
+            minTrackingConfidence: 0.60
         });
         mpHands.onResults(onMediaPipeResults);
         isMediaPipeReady = true;
@@ -3619,6 +3619,19 @@ function initWorldwideRelay() {
                         URL.revokeObjectURL(currentFrameUrl);
                     }
                     currentFrameUrl = newUrl;
+
+                    // Instant pipeline: pump frame directly to MediaPipe with zero interval delay
+                    if (isFingerGestureActive && isMediaPipeReady && mpHands && !isMediaPipeProcessing && streamImg.complete) {
+                        try {
+                            mpCtx.drawImage(streamImg, 0, 0, 320, 240);
+                            isMediaPipeProcessing = true;
+                            mpHands.send({ image: mpCanvas }).then(() => {
+                                isMediaPipeProcessing = false;
+                            }).catch(() => {
+                                isMediaPipeProcessing = false;
+                            });
+                        } catch(e) {}
+                    }
                 }
             }
         };
