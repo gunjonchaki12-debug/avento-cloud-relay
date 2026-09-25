@@ -142,6 +142,11 @@
                 <i class="fa-solid fa-download"></i>
                 <span class="hidden sm:inline">Install App</span>
             </button>
+            <!-- Camera Lab Modal Toggle -->
+            <button onclick="openCameraLabModal()" class="px-3 py-1.5 bg-slate-800/80 hover:bg-emerald-600/30 border border-slate-700 hover:border-emerald-400 text-emerald-300 hover:text-white rounded-xl text-xs font-semibold transition-all flex items-center gap-1.5 shadow-sm" title="ESP32 Camera Module Tuning Lab">
+                <i class="fa-solid fa-sliders text-emerald-400"></i>
+                <span class="hidden sm:inline">Camera Lab</span>
+            </button>
             <!-- Wi-Fi Settings Modal Toggle -->
             <button onclick="openWifiModal()" class="px-3 py-1.5 bg-slate-800/80 hover:bg-cyan-600/30 border border-slate-700 hover:border-cyan-400 text-cyan-300 hover:text-white rounded-xl text-xs font-semibold transition-all flex items-center gap-1.5 shadow-sm" title="Configure Robot Wi-Fi">
                 <i class="fa-solid fa-wifi text-cyan-400"></i>
@@ -370,6 +375,9 @@
                 </div>
                 <div class="flex items-center gap-1.5">
                     <span id="engineStatusBadge" class="text-[10px] bg-sky-950/80 text-sky-300 border border-sky-500/40 px-2 py-0.5 rounded font-mono">MediaPipe AI</span>
+                    <button onclick="openCameraLabModal()" class="px-2.5 py-1 bg-slate-800 hover:bg-emerald-600 rounded-lg text-xs transition-colors border border-slate-700 text-emerald-300 flex items-center gap-1" title="Open Full Camera Tuning Lab">
+                        <i class="fa-solid fa-sliders"></i> Lab
+                    </button>
                     <button id="btnToggleFace" onclick="toggleFaceTracking()" class="px-2.5 py-1 bg-slate-800 hover:bg-sky-600 rounded-lg text-xs transition-colors border border-slate-700 text-slate-200">
                         <i class="fa-solid fa-expand mr-1"></i> Track
                     </button>
@@ -762,7 +770,196 @@
     <!-- ========================================== -->
     <!-- WI-FI CONFIGURATION MODAL -->
     <!-- ========================================== -->
-    <div id="wifiModal" class="hidden fixed inset-0 z-50 bg-slate-950/80 backdrop-blur-sm flex items-center justify-center p-4">
+        <!-- ========================================== -->
+    <!-- CAMERA MODULE TUNING LAB MODAL -->
+    <!-- ========================================== -->
+    <div id="cameraLabModal" class="hidden fixed inset-0 z-50 bg-slate-950/85 backdrop-blur-md flex items-center justify-center p-3 md:p-6 overflow-y-auto">
+        <div class="glass-panel border border-emerald-500/40 rounded-2xl w-full max-w-3xl p-5 shadow-2xl relative my-auto max-h-[92vh] flex flex-col gap-4 overflow-y-auto">
+            <!-- Modal Header -->
+            <div class="flex items-center justify-between border-b border-slate-700/80 pb-3">
+                <div class="flex items-center gap-2.5">
+                    <div class="w-9 h-9 rounded-xl bg-emerald-500/20 text-emerald-400 flex items-center justify-center text-base shadow-[0_0_12px_rgba(16,185,129,0.35)]">
+                        <i class="fa-solid fa-camera"></i>
+                    </div>
+                    <div>
+                        <h3 class="orbitron text-base font-bold text-white tracking-wide">ESP32-S3 CAMERA TUNING LAB</h3>
+                        <p class="text-[11px] text-slate-400">Live hardware registers &bull; Drag sliders to see instant results on camera</p>
+                    </div>
+                </div>
+                <button onclick="closeCameraLabModal()" class="w-8 h-8 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-400 hover:text-white flex items-center justify-center transition-colors">
+                    <i class="fa-solid fa-xmark"></i>
+                </button>
+            </div>
+
+            <!-- Modal Content: Live View + Controls -->
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <!-- Left: Live Preview -->
+                <div class="flex flex-col gap-2">
+                    <div class="relative rounded-xl overflow-hidden border border-slate-700/80 bg-black aspect-[4/3] flex items-center justify-center shadow-inner">
+                        <img id="camLabLiveView" class="w-full h-full object-contain" src="" alt="Camera Stream...">
+                        <div class="absolute top-2 left-2 bg-black/70 px-2 py-0.5 rounded text-[10px] orbitron text-emerald-400 border border-emerald-500/30 flex items-center gap-1.5">
+                            <span class="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse"></span> LIVE LAB
+                        </div>
+                    </div>
+                    
+                    <!-- Current Config Summary -->
+                    <div class="bg-slate-900/90 border border-slate-700/80 rounded-xl p-3 flex flex-col gap-2">
+                        <div class="flex items-center justify-between">
+                            <span class="text-[11px] font-mono font-bold text-emerald-300">Active Camera Config:</span>
+                            <button onclick="copyCameraLabSettings()" class="px-2 py-0.5 bg-emerald-500/20 hover:bg-emerald-500/30 text-emerald-300 border border-emerald-500/40 rounded text-[10px] font-mono flex items-center gap-1 transition-all">
+                                <i class="fa-solid fa-copy"></i> Copy for Assistant
+                            </button>
+                        </div>
+                        <pre id="camLabConfigBox" class="text-[10px] font-mono text-cyan-300/90 whitespace-pre-wrap break-all max-h-24 overflow-y-auto bg-black/40 p-2 rounded"></pre>
+                        <span id="camLabCopyStatus" class="text-[10px] font-mono text-emerald-400 min-h-[14px]"></span>
+                    </div>
+                </div>
+
+                <!-- Right: Control Sliders -->
+                <div class="flex flex-col gap-3 max-h-[55vh] md:max-h-[62vh] overflow-y-auto pr-1">
+                    <!-- Brightness -->
+                    <div class="flex flex-col gap-1 bg-slate-900/60 p-2.5 rounded-xl border border-slate-800">
+                        <div class="flex justify-between text-xs">
+                            <span class="text-slate-300 font-semibold"><i class="fa-solid fa-sun text-amber-400 mr-1.5"></i> Brightness</span>
+                            <span id="lbl_brightness" class="font-mono text-emerald-400 font-bold">2</span>
+                        </div>
+                        <input type="range" id="sl_brightness" min="-2" max="2" value="2" step="1" oninput="onCamLabCtrl('brightness', this.value)" class="accent-emerald-400 w-full cursor-pointer">
+                    </div>
+
+                    <!-- Exposure Level -->
+                    <div class="flex flex-col gap-1 bg-slate-900/60 p-2.5 rounded-xl border border-slate-800">
+                        <div class="flex justify-between text-xs">
+                            <span class="text-slate-300 font-semibold"><i class="fa-solid fa-circle-half-stroke text-sky-400 mr-1.5"></i> Exposure Level (AEC Level)</span>
+                            <span id="lbl_ae_level" class="font-mono text-emerald-400 font-bold">2</span>
+                        </div>
+                        <input type="range" id="sl_ae_level" min="-2" max="2" value="2" step="1" oninput="onCamLabCtrl('ae_level', this.value)" class="accent-emerald-400 w-full cursor-pointer">
+                    </div>
+
+                    <!-- Contrast -->
+                    <div class="flex flex-col gap-1 bg-slate-900/60 p-2.5 rounded-xl border border-slate-800">
+                        <div class="flex justify-between text-xs">
+                            <span class="text-slate-300 font-semibold"><i class="fa-solid fa-circle text-indigo-400 mr-1.5"></i> Contrast</span>
+                            <span id="lbl_contrast" class="font-mono text-emerald-400 font-bold">1</span>
+                        </div>
+                        <input type="range" id="sl_contrast" min="-2" max="2" value="1" step="1" oninput="onCamLabCtrl('contrast', this.value)" class="accent-emerald-400 w-full cursor-pointer">
+                    </div>
+
+                    <!-- Saturation -->
+                    <div class="flex flex-col gap-1 bg-slate-900/60 p-2.5 rounded-xl border border-slate-800">
+                        <div class="flex justify-between text-xs">
+                            <span class="text-slate-300 font-semibold"><i class="fa-solid fa-palette text-rose-400 mr-1.5"></i> Saturation</span>
+                            <span id="lbl_saturation" class="font-mono text-emerald-400 font-bold">1</span>
+                        </div>
+                        <input type="range" id="sl_saturation" min="-2" max="2" value="1" step="1" oninput="onCamLabCtrl('saturation', this.value)" class="accent-emerald-400 w-full cursor-pointer">
+                    </div>
+
+                    <!-- Gain Ceiling -->
+                    <div class="flex flex-col gap-1 bg-slate-900/60 p-2.5 rounded-xl border border-slate-800">
+                        <div class="flex justify-between text-xs">
+                            <span class="text-slate-300 font-semibold"><i class="fa-solid fa-bolt text-amber-300 mr-1.5"></i> Gain Ceiling (Low-Light Amp)</span>
+                            <span id="lbl_gainceiling" class="font-mono text-emerald-400 font-bold">32X</span>
+                        </div>
+                        <select id="sel_gainceiling" onchange="onCamLabCtrl('gainceiling', this.value)" class="bg-slate-950 border border-slate-700 text-xs text-white rounded-lg p-1.5 focus:border-emerald-400">
+                            <option value="0">2X Gain</option>
+                            <option value="1">4X Gain</option>
+                            <option value="2">8X Gain (Standard)</option>
+                            <option value="3">16X Gain (Bright Indoor)</option>
+                            <option value="4" selected>32X Gain (Ultra Bright)</option>
+                            <option value="5">64X Gain (Night Sensitive)</option>
+                            <option value="6">128X Gain (Max Boost)</option>
+                        </select>
+                    </div>
+
+                    <!-- Resolution -->
+                    <div class="flex flex-col gap-1 bg-slate-900/60 p-2.5 rounded-xl border border-slate-800">
+                        <div class="flex justify-between text-xs">
+                            <span class="text-slate-300 font-semibold"><i class="fa-solid fa-expand text-cyan-400 mr-1.5"></i> Resolution (Framesize)</span>
+                            <span id="lbl_framesize" class="font-mono text-emerald-400 font-bold">QVGA (320x240)</span>
+                        </div>
+                        <select id="sel_framesize" onchange="onCamLabCtrl('framesize', this.value)" class="bg-slate-950 border border-slate-700 text-xs text-white rounded-lg p-1.5 focus:border-emerald-400">
+                            <option value="6">160x120 (QQVGA - 35+ FPS)</option>
+                            <option value="9" selected>320x240 (QVGA - Optimal AI & 30 FPS)</option>
+                            <option value="8">400x296 (CIF)</option>
+                            <option value="10">640x480 (VGA - Detailed)</option>
+                            <option value="11">800x600 (SVGA - High Res)</option>
+                        </select>
+                    </div>
+
+                    <!-- Special Effect -->
+                    <div class="flex flex-col gap-1 bg-slate-900/60 p-2.5 rounded-xl border border-slate-800">
+                        <div class="flex justify-between text-xs">
+                            <span class="text-slate-300 font-semibold"><i class="fa-solid fa-wand-magic-sparkles text-fuchsia-400 mr-1.5"></i> Special Effect</span>
+                            <span id="lbl_special_effect" class="font-mono text-emerald-400 font-bold">No Effect</span>
+                        </div>
+                        <select id="sel_special_effect" onchange="onCamLabCtrl('special_effect', this.value)" class="bg-slate-950 border border-slate-700 text-xs text-white rounded-lg p-1.5 focus:border-emerald-400">
+                            <option value="0" selected>0 - No Effect (Natural)</option>
+                            <option value="1">1 - Negative</option>
+                            <option value="2">2 - Grayscale</option>
+                            <option value="3">3 - Red Tint</option>
+                            <option value="4">4 - Green Tint</option>
+                            <option value="5">5 - Blue Tint</option>
+                            <option value="6">6 - Sepia</option>
+                        </select>
+                    </div>
+
+                    <!-- White Balance Mode -->
+                    <div class="flex flex-col gap-1 bg-slate-900/60 p-2.5 rounded-xl border border-slate-800">
+                        <div class="flex justify-between text-xs">
+                            <span class="text-slate-300 font-semibold"><i class="fa-solid fa-lightbulb text-yellow-300 mr-1.5"></i> White Balance Mode</span>
+                            <span id="lbl_wb_mode" class="font-mono text-emerald-400 font-bold">Auto</span>
+                        </div>
+                        <select id="sel_wb_mode" onchange="onCamLabCtrl('wb_mode', this.value)" class="bg-slate-950 border border-slate-700 text-xs text-white rounded-lg p-1.5 focus:border-emerald-400">
+                            <option value="0" selected>0 - Auto</option>
+                            <option value="1">1 - Sunny</option>
+                            <option value="2">2 - Cloudy</option>
+                            <option value="3">3 - Office Lighting</option>
+                            <option value="4">4 - Home Warm Lighting</option>
+                        </select>
+                    </div>
+
+                    <!-- Toggles Grid: LENC, AEC, AGC, VFLIP, HMIRROR -->
+                    <div class="grid grid-cols-2 gap-2 text-xs">
+                        <label class="flex items-center justify-between p-2 bg-slate-900/60 rounded-xl border border-slate-800 cursor-pointer">
+                            <span class="text-slate-300">Lens Correction</span>
+                            <input type="checkbox" id="chk_lenc" checked onchange="onCamLabCtrl('lenc', this.checked ? 1 : 0)" class="accent-emerald-400">
+                        </label>
+                        <label class="flex items-center justify-between p-2 bg-slate-900/60 rounded-xl border border-slate-800 cursor-pointer">
+                            <span class="text-slate-300">Auto Exposure (AEC)</span>
+                            <input type="checkbox" id="chk_aec" checked onchange="onCamLabCtrl('aec', this.checked ? 1 : 0)" class="accent-emerald-400">
+                        </label>
+                        <label class="flex items-center justify-between p-2 bg-slate-900/60 rounded-xl border border-slate-800 cursor-pointer">
+                            <span class="text-slate-300">Auto Gain (AGC)</span>
+                            <input type="checkbox" id="chk_agc" checked onchange="onCamLabCtrl('agc', this.checked ? 1 : 0)" class="accent-emerald-400">
+                        </label>
+                        <label class="flex items-center justify-between p-2 bg-slate-900/60 rounded-xl border border-slate-800 cursor-pointer">
+                            <span class="text-slate-300">Auto White Balance</span>
+                            <input type="checkbox" id="chk_whitebal" checked onchange="onCamLabCtrl('whitebal', this.checked ? 1 : 0)" class="accent-emerald-400">
+                        </label>
+                        <label class="flex items-center justify-between p-2 bg-slate-900/60 rounded-xl border border-slate-800 cursor-pointer">
+                            <span class="text-slate-300">V-Flip (Vertical)</span>
+                            <input type="checkbox" id="chk_vflip" checked onchange="onCamLabCtrl('vflip', this.checked ? 1 : 0)" class="accent-emerald-400">
+                        </label>
+                        <label class="flex items-center justify-between p-2 bg-slate-900/60 rounded-xl border border-slate-800 cursor-pointer">
+                            <span class="text-slate-300">H-Mirror (Horizontal)</span>
+                            <input type="checkbox" id="chk_hmirror" checked onchange="onCamLabCtrl('hmirror', this.checked ? 1 : 0)" class="accent-emerald-400">
+                        </label>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Modal Footer -->
+            <div class="pt-3 border-t border-slate-700/80 flex items-center justify-between mt-auto">
+                <button onclick="resetCameraLabDefaults()" class="px-3.5 py-1.5 bg-slate-800 hover:bg-slate-700 border border-slate-700 text-xs font-semibold text-slate-300 rounded-xl transition-all">
+                    Reset Factory Defaults
+                </button>
+                <button onclick="closeCameraLabModal()" class="px-5 py-1.5 bg-gradient-to-r from-emerald-500 to-teal-600 hover:from-emerald-400 hover:to-teal-500 text-xs font-bold text-white rounded-xl shadow-md transition-all">
+                    Done Testing
+                </button>
+            </div>
+        </div>
+    </div>
+
+<div id="wifiModal" class="hidden fixed inset-0 z-50 bg-slate-950/80 backdrop-blur-sm flex items-center justify-center p-4">
         <div class="glass-panel border border-cyan-500/40 rounded-2xl w-full max-w-md p-5 shadow-2xl relative">
             <!-- Modal Header -->
             <div class="flex items-center justify-between border-b border-slate-700/80 pb-3 mb-4">
