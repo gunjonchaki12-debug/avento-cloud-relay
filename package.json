@@ -1,0 +1,23 @@
+{
+  "name": "avento-cloud-relay",
+  "version": "1.0.0",
+  "description": "Worldwide Cloud Relay & Progressive Web App for Avento Desktop AI Robot",
+  "main": "server.js",
+  "type": "module",
+  "scripts": {
+    "start": "node server.js",
+    "dev": "nodemon server.js"
+  },
+  "keywords": ["esp32", "robotics", "pwa", "websocket", "streaming"],
+  "author": "Gunjon",
+  "license": "MIT",
+  "dependencies": {
+    "cors": "^2.8.5",
+    "dotenv": "^16.4.7",
+    "express": "^4.21.2",
+    "ws": "^8.18.0"
+  },
+  "engines": {
+    "node": ">=18.0.0"
+  }
+}

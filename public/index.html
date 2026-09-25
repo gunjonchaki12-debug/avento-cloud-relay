@@ -1,0 +1,3644 @@
+<!DOCTYPE html>
+<html lang="bn">
+<head>
+    <!-- PWA & Worldwide Manifest -->
+    <link rel="manifest" href="/manifest.json">
+    <meta name="theme-color" content="#0b1120">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="apple-mobile-web-app-title" content="Avento Robot">
+    <link rel="apple-touch-icon" href="/icons/icon.svg">
+    <link rel="icon" type="image/svg+xml" href="/icons/icon.svg">
+
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>AVENTO | AI Robot Dashboard</title>
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com">
+// ==========================================
+// 10. PROGRESSIVE WEB APP & WORLDWIDE RELAY
+// ==========================================
+let deferredPrompt = null;
+const btnInstall = document.getElementById('btnPwaInstall');
+
+window.addEventListener('beforeinstallprompt', (e) => {
+    e.preventDefault();
+    deferredPrompt = e;
+    if (btnInstall) {
+        btnInstall.classList.remove('hidden');
+        btnInstall.classList.add('flex');
+    }
+});
+
+if (btnInstall) {
+    btnInstall.addEventListener('click', async () => {
+        if (!deferredPrompt) return;
+        deferredPrompt.prompt();
+        const { outcome } = await deferredPrompt.userChoice;
+        console.log('[PWA] User choice:', outcome);
+        deferredPrompt = null;
+        btnInstall.classList.add('hidden');
+        btnInstall.classList.remove('flex');
+    });
+}
+
+// Service Worker Registration
+if ('serviceWorker' in navigator) {
+    window.addEventListener('load', () => {
+        navigator.serviceWorker.register('/sw.js').then(reg => {
+            console.log('✅ [PWA] Service Worker active:', reg.scope);
+        }).catch(err => {
+            console.warn('[PWA] Service Worker registration note:', err);
+        });
+    });
+}
+
+// High-Speed WebSocket Worldwide Relay Client
+let relayWs = null;
+let currentFrameUrl = null;
+
+function initWorldwideRelay() {
+    if (!window.location.protocol.startsWith('http')) return;
+    const isHttps = window.location.protocol === 'https:';
+    const wsProto = isHttps ? 'wss://' : 'ws://';
+    const wsUrl = wsProto + window.location.host + '/ws/client';
+
+    try {
+        relayWs = new WebSocket(wsUrl);
+        relayWs.binaryType = 'arraybuffer';
+
+        relayWs.onopen = () => {
+            console.log('🚀 [Relay] Connected to Worldwide Cloud Relay!');
+            const pulse = document.getElementById('metricPulse');
+            if (pulse) {
+                pulse.innerHTML = '<span class="w-1.5 h-1.5 rounded-full bg-cyan-400 animate-ping"></span> WORLDWIDE LIVE';
+                pulse.className = "text-[10px] font-mono px-2 py-0.5 rounded bg-cyan-500/10 text-cyan-300 border border-cyan-500/30 flex items-center gap-1";
+            }
+        };
+
+        relayWs.onmessage = (event) => {
+            if (typeof event.data === 'string') {
+                try {
+                    const msg = JSON.parse(event.data);
+                    if (msg.type === 'telemetry' && msg.data) {
+                        applyTelemetryData(msg.data);
+                    }
+                } catch(e){}
+            } else if (event.data instanceof ArrayBuffer) {
+                // Incoming JPEG Video Frame over WebSocket (Sub-50ms)
+                const streamImg = document.getElementById('camStream');
+                if (streamImg) {
+                    const blob = new Blob([event.data], { type: 'image/jpeg' });
+                    const newUrl = URL.createObjectURL(blob);
+                    streamImg.src = newUrl;
+                    if (currentFrameUrl) {
+                        URL.revokeObjectURL(currentFrameUrl);
+                    }
+                    currentFrameUrl = newUrl;
+                }
+            }
+        };
+
+        relayWs.onclose = () => {
+            console.warn('⚠️ [Relay] WebSocket disconnected, retrying in 2.5s...');
+            setTimeout(initWorldwideRelay, 2500);
+        };
+
+        relayWs.onerror = (err) => {
+            // Silently fallback to standard HTTP streaming
+        };
+    } catch (e) {
+        console.warn('Relay WS init notice:', e);
+    }
+}
+
+// Start Worldwide Relay on load
+setTimeout(initWorldwideRelay, 500);
+
+</script>
+    <!-- Tracking.js for Face Detection -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/tracking.js/1.1.3/tracking-min.js">
+// ==========================================
+// 10. PROGRESSIVE WEB APP & WORLDWIDE RELAY
+// ==========================================
+let deferredPrompt = null;
+const btnInstall = document.getElementById('btnPwaInstall');
+
+window.addEventListener('beforeinstallprompt', (e) => {
+    e.preventDefault();
+    deferredPrompt = e;
+    if (btnInstall) {
+        btnInstall.classList.remove('hidden');
+        btnInstall.classList.add('flex');
+    }
+});
+
+if (btnInstall) {
+    btnInstall.addEventListener('click', async () => {
+        if (!deferredPrompt) return;
+        deferredPrompt.prompt();
+        const { outcome } = await deferredPrompt.userChoice;
+        console.log('[PWA] User choice:', outcome);
+        deferredPrompt = null;
+        btnInstall.classList.add('hidden');
+        btnInstall.classList.remove('flex');
+    });
+}
+
+// Service Worker Registration
+if ('serviceWorker' in navigator) {
+    window.addEventListener('load', () => {
+        navigator.serviceWorker.register('/sw.js').then(reg => {
+            console.log('✅ [PWA] Service Worker active:', reg.scope);
+        }).catch(err => {
+            console.warn('[PWA] Service Worker registration note:', err);
+        });
+    });
+}
+
+// High-Speed WebSocket Worldwide Relay Client
+let relayWs = null;
+let currentFrameUrl = null;
+
+function initWorldwideRelay() {
+    if (!window.location.protocol.startsWith('http')) return;
+    const isHttps = window.location.protocol === 'https:';
+    const wsProto = isHttps ? 'wss://' : 'ws://';
+    const wsUrl = wsProto + window.location.host + '/ws/client';
+
+    try {
+        relayWs = new WebSocket(wsUrl);
+        relayWs.binaryType = 'arraybuffer';
+
+        relayWs.onopen = () => {
+            console.log('🚀 [Relay] Connected to Worldwide Cloud Relay!');
+            const pulse = document.getElementById('metricPulse');
+            if (pulse) {
+                pulse.innerHTML = '<span class="w-1.5 h-1.5 rounded-full bg-cyan-400 animate-ping"></span> WORLDWIDE LIVE';
+                pulse.className = "text-[10px] font-mono px-2 py-0.5 rounded bg-cyan-500/10 text-cyan-300 border border-cyan-500/30 flex items-center gap-1";
+            }
+        };
+
+        relayWs.onmessage = (event) => {
+            if (typeof event.data === 'string') {
+                try {
+                    const msg = JSON.parse(event.data);
+                    if (msg.type === 'telemetry' && msg.data) {
+                        applyTelemetryData(msg.data);
+                    }
+                } catch(e){}
+            } else if (event.data instanceof ArrayBuffer) {
+                // Incoming JPEG Video Frame over WebSocket (Sub-50ms)
+                const streamImg = document.getElementById('camStream');
+                if (streamImg) {
+                    const blob = new Blob([event.data], { type: 'image/jpeg' });
+                    const newUrl = URL.createObjectURL(blob);
+                    streamImg.src = newUrl;
+                    if (currentFrameUrl) {
+                        URL.revokeObjectURL(currentFrameUrl);
+                    }
+                    currentFrameUrl = newUrl;
+                }
+            }
+        };
+
+        relayWs.onclose = () => {
+            console.warn('⚠️ [Relay] WebSocket disconnected, retrying in 2.5s...');
+            setTimeout(initWorldwideRelay, 2500);
+        };
+
+        relayWs.onerror = (err) => {
+            // Silently fallback to standard HTTP streaming
+        };
+    } catch (e) {
+        console.warn('Relay WS init notice:', e);
+    }
+}
+
+// Start Worldwide Relay on load
+setTimeout(initWorldwideRelay, 500);
+
+</script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/tracking.js/1.1.3/data/face-min.js">
+// ==========================================
+// 10. PROGRESSIVE WEB APP & WORLDWIDE RELAY
+// ==========================================
+let deferredPrompt = null;
+const btnInstall = document.getElementById('btnPwaInstall');
+
+window.addEventListener('beforeinstallprompt', (e) => {
+    e.preventDefault();
+    deferredPrompt = e;
+    if (btnInstall) {
+        btnInstall.classList.remove('hidden');
+        btnInstall.classList.add('flex');
+    }
+});
+
+if (btnInstall) {
+    btnInstall.addEventListener('click', async () => {
+        if (!deferredPrompt) return;
+        deferredPrompt.prompt();
+        const { outcome } = await deferredPrompt.userChoice;
+        console.log('[PWA] User choice:', outcome);
+        deferredPrompt = null;
+        btnInstall.classList.add('hidden');
+        btnInstall.classList.remove('flex');
+    });
+}
+
+// Service Worker Registration
+if ('serviceWorker' in navigator) {
+    window.addEventListener('load', () => {
+        navigator.serviceWorker.register('/sw.js').then(reg => {
+            console.log('✅ [PWA] Service Worker active:', reg.scope);
+        }).catch(err => {
+            console.warn('[PWA] Service Worker registration note:', err);
+        });
+    });
+}
+
+// High-Speed WebSocket Worldwide Relay Client
+let relayWs = null;
+let currentFrameUrl = null;
+
+function initWorldwideRelay() {
+    if (!window.location.protocol.startsWith('http')) return;
+    const isHttps = window.location.protocol === 'https:';
+    const wsProto = isHttps ? 'wss://' : 'ws://';
+    const wsUrl = wsProto + window.location.host + '/ws/client';
+
+    try {
+        relayWs = new WebSocket(wsUrl);
+        relayWs.binaryType = 'arraybuffer';
+
+        relayWs.onopen = () => {
+            console.log('🚀 [Relay] Connected to Worldwide Cloud Relay!');
+            const pulse = document.getElementById('metricPulse');
+            if (pulse) {
+                pulse.innerHTML = '<span class="w-1.5 h-1.5 rounded-full bg-cyan-400 animate-ping"></span> WORLDWIDE LIVE';
+                pulse.className = "text-[10px] font-mono px-2 py-0.5 rounded bg-cyan-500/10 text-cyan-300 border border-cyan-500/30 flex items-center gap-1";
+            }
+        };
+
+        relayWs.onmessage = (event) => {
+            if (typeof event.data === 'string') {
+                try {
+                    const msg = JSON.parse(event.data);
+                    if (msg.type === 'telemetry' && msg.data) {
+                        applyTelemetryData(msg.data);
+                    }
+                } catch(e){}
+            } else if (event.data instanceof ArrayBuffer) {
+                // Incoming JPEG Video Frame over WebSocket (Sub-50ms)
+                const streamImg = document.getElementById('camStream');
+                if (streamImg) {
+                    const blob = new Blob([event.data], { type: 'image/jpeg' });
+                    const newUrl = URL.createObjectURL(blob);
+                    streamImg.src = newUrl;
+                    if (currentFrameUrl) {
+                        URL.revokeObjectURL(currentFrameUrl);
+                    }
+                    currentFrameUrl = newUrl;
+                }
+            }
+        };
+
+        relayWs.onclose = () => {
+            console.warn('⚠️ [Relay] WebSocket disconnected, retrying in 2.5s...');
+            setTimeout(initWorldwideRelay, 2500);
+        };
+
+        relayWs.onerror = (err) => {
+            // Silently fallback to standard HTTP streaming
+        };
+    } catch (e) {
+        console.warn('Relay WS init notice:', e);
+    }
+}
+
+// Start Worldwide Relay on load
+setTimeout(initWorldwideRelay, 500);
+
+</script>
+    <!-- Google MediaPipe Hands 21-Landmark AI Engine -->
+    <script src="https://cdn.jsdelivr.net/npm/@mediapipe/camera_utils/camera_utils.js" crossorigin="anonymous">
+// ==========================================
+// 10. PROGRESSIVE WEB APP & WORLDWIDE RELAY
+// ==========================================
+let deferredPrompt = null;
+const btnInstall = document.getElementById('btnPwaInstall');
+
+window.addEventListener('beforeinstallprompt', (e) => {
+    e.preventDefault();
+    deferredPrompt = e;
+    if (btnInstall) {
+        btnInstall.classList.remove('hidden');
+        btnInstall.classList.add('flex');
+    }
+});
+
+if (btnInstall) {
+    btnInstall.addEventListener('click', async () => {
+        if (!deferredPrompt) return;
+        deferredPrompt.prompt();
+        const { outcome } = await deferredPrompt.userChoice;
+        console.log('[PWA] User choice:', outcome);
+        deferredPrompt = null;
+        btnInstall.classList.add('hidden');
+        btnInstall.classList.remove('flex');
+    });
+}
+
+// Service Worker Registration
+if ('serviceWorker' in navigator) {
+    window.addEventListener('load', () => {
+        navigator.serviceWorker.register('/sw.js').then(reg => {
+            console.log('✅ [PWA] Service Worker active:', reg.scope);
+        }).catch(err => {
+            console.warn('[PWA] Service Worker registration note:', err);
+        });
+    });
+}
+
+// High-Speed WebSocket Worldwide Relay Client
+let relayWs = null;
+let currentFrameUrl = null;
+
+function initWorldwideRelay() {
+    if (!window.location.protocol.startsWith('http')) return;
+    const isHttps = window.location.protocol === 'https:';
+    const wsProto = isHttps ? 'wss://' : 'ws://';
+    const wsUrl = wsProto + window.location.host + '/ws/client';
+
+    try {
+        relayWs = new WebSocket(wsUrl);
+        relayWs.binaryType = 'arraybuffer';
+
+        relayWs.onopen = () => {
+            console.log('🚀 [Relay] Connected to Worldwide Cloud Relay!');
+            const pulse = document.getElementById('metricPulse');
+            if (pulse) {
+                pulse.innerHTML = '<span class="w-1.5 h-1.5 rounded-full bg-cyan-400 animate-ping"></span> WORLDWIDE LIVE';
+                pulse.className = "text-[10px] font-mono px-2 py-0.5 rounded bg-cyan-500/10 text-cyan-300 border border-cyan-500/30 flex items-center gap-1";
+            }
+        };
+
+        relayWs.onmessage = (event) => {
+            if (typeof event.data === 'string') {
+                try {
+                    const msg = JSON.parse(event.data);
+                    if (msg.type === 'telemetry' && msg.data) {
+                        applyTelemetryData(msg.data);
+                    }
+                } catch(e){}
+            } else if (event.data instanceof ArrayBuffer) {
+                // Incoming JPEG Video Frame over WebSocket (Sub-50ms)
+                const streamImg = document.getElementById('camStream');
+                if (streamImg) {
+                    const blob = new Blob([event.data], { type: 'image/jpeg' });
+                    const newUrl = URL.createObjectURL(blob);
+                    streamImg.src = newUrl;
+                    if (currentFrameUrl) {
+                        URL.revokeObjectURL(currentFrameUrl);
+                    }
+                    currentFrameUrl = newUrl;
+                }
+            }
+        };
+
+        relayWs.onclose = () => {
+            console.warn('⚠️ [Relay] WebSocket disconnected, retrying in 2.5s...');
+            setTimeout(initWorldwideRelay, 2500);
+        };
+
+        relayWs.onerror = (err) => {
+            // Silently fallback to standard HTTP streaming
+        };
+    } catch (e) {
+        console.warn('Relay WS init notice:', e);
+    }
+}
+
+// Start Worldwide Relay on load
+setTimeout(initWorldwideRelay, 500);
+
+</script>
+    <script src="https://cdn.jsdelivr.net/npm/@mediapipe/hands/hands.js" crossorigin="anonymous">
+// ==========================================
+// 10. PROGRESSIVE WEB APP & WORLDWIDE RELAY
+// ==========================================
+let deferredPrompt = null;
+const btnInstall = document.getElementById('btnPwaInstall');
+
+window.addEventListener('beforeinstallprompt', (e) => {
+    e.preventDefault();
+    deferredPrompt = e;
+    if (btnInstall) {
+        btnInstall.classList.remove('hidden');
+        btnInstall.classList.add('flex');
+    }
+});
+
+if (btnInstall) {
+    btnInstall.addEventListener('click', async () => {
+        if (!deferredPrompt) return;
+        deferredPrompt.prompt();
+        const { outcome } = await deferredPrompt.userChoice;
+        console.log('[PWA] User choice:', outcome);
+        deferredPrompt = null;
+        btnInstall.classList.add('hidden');
+        btnInstall.classList.remove('flex');
+    });
+}
+
+// Service Worker Registration
+if ('serviceWorker' in navigator) {
+    window.addEventListener('load', () => {
+        navigator.serviceWorker.register('/sw.js').then(reg => {
+            console.log('✅ [PWA] Service Worker active:', reg.scope);
+        }).catch(err => {
+            console.warn('[PWA] Service Worker registration note:', err);
+        });
+    });
+}
+
+// High-Speed WebSocket Worldwide Relay Client
+let relayWs = null;
+let currentFrameUrl = null;
+
+function initWorldwideRelay() {
+    if (!window.location.protocol.startsWith('http')) return;
+    const isHttps = window.location.protocol === 'https:';
+    const wsProto = isHttps ? 'wss://' : 'ws://';
+    const wsUrl = wsProto + window.location.host + '/ws/client';
+
+    try {
+        relayWs = new WebSocket(wsUrl);
+        relayWs.binaryType = 'arraybuffer';
+
+        relayWs.onopen = () => {
+            console.log('🚀 [Relay] Connected to Worldwide Cloud Relay!');
+            const pulse = document.getElementById('metricPulse');
+            if (pulse) {
+                pulse.innerHTML = '<span class="w-1.5 h-1.5 rounded-full bg-cyan-400 animate-ping"></span> WORLDWIDE LIVE';
+                pulse.className = "text-[10px] font-mono px-2 py-0.5 rounded bg-cyan-500/10 text-cyan-300 border border-cyan-500/30 flex items-center gap-1";
+            }
+        };
+
+        relayWs.onmessage = (event) => {
+            if (typeof event.data === 'string') {
+                try {
+                    const msg = JSON.parse(event.data);
+                    if (msg.type === 'telemetry' && msg.data) {
+                        applyTelemetryData(msg.data);
+                    }
+                } catch(e){}
+            } else if (event.data instanceof ArrayBuffer) {
+                // Incoming JPEG Video Frame over WebSocket (Sub-50ms)
+                const streamImg = document.getElementById('camStream');
+                if (streamImg) {
+                    const blob = new Blob([event.data], { type: 'image/jpeg' });
+                    const newUrl = URL.createObjectURL(blob);
+                    streamImg.src = newUrl;
+                    if (currentFrameUrl) {
+                        URL.revokeObjectURL(currentFrameUrl);
+                    }
+                    currentFrameUrl = newUrl;
+                }
+            }
+        };
+
+        relayWs.onclose = () => {
+            console.warn('⚠️ [Relay] WebSocket disconnected, retrying in 2.5s...');
+            setTimeout(initWorldwideRelay, 2500);
+        };
+
+        relayWs.onerror = (err) => {
+            // Silently fallback to standard HTTP streaming
+        };
+    } catch (e) {
+        console.warn('Relay WS init notice:', e);
+    }
+}
+
+// Start Worldwide Relay on load
+setTimeout(initWorldwideRelay, 500);
+
+</script>
+    <!-- Font Awesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Orbitron:wght@400;600;800&family=Hind+Siliguri:wght@400;600;700&display=swap');
+        body {
+            background-color: #0b1120;
+            color: #f8fafc;
+            font-family: 'Hind Siliguri', sans-serif;
+            overflow-x: hidden;
+        }
+        .orbitron { font-family: 'Orbitron', sans-serif; }
+        .glass-panel {
+            background: rgba(19, 27, 46, 0.75);
+            backdrop-filter: blur(14px);
+            -webkit-backdrop-filter: blur(14px);
+            border: 1px solid rgba(255, 255, 255, 0.08);
+            box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.45);
+        }
+        .glow-border {
+            box-shadow: 0 0 15px rgba(56, 189, 248, 0.35), inset 0 0 10px rgba(56, 189, 248, 0.15);
+            border: 2px solid rgba(56, 189, 248, 0.5);
+        }
+        .glow-border-rose {
+            box-shadow: 0 0 18px rgba(244, 63, 94, 0.35), inset 0 0 10px rgba(244, 63, 94, 0.15);
+            border: 2px solid rgba(244, 63, 94, 0.5);
+        }
+        .stream-container { position: relative; width: 100%; max-width: 440px; margin: 0 auto; border-radius: 12px; overflow: hidden; transform: translateZ(0); }
+        #camStream { width: 100%; display: block; border-radius: 12px; transform: translateZ(0); backface-visibility: hidden; image-rendering: auto; }
+        #canvasOverlay { position: absolute; top: 0; left: 0; width: 100%; height: 100%; z-index: 10; pointer-events: none; transform: translateZ(0); }
+        .recording-pulse { animation: pulse-red 1.5s infinite; }
+        @keyframes pulse-red {
+            0% { box-shadow: 0 0 0 0 rgba(239, 68, 68, 0.7); }
+            70% { box-shadow: 0 0 0 15px rgba(239, 68, 68, 0); }
+            100% { box-shadow: 0 0 0 0 rgba(239, 68, 68, 0); }
+        }
+        /* Custom scrollbar */
+        ::-webkit-scrollbar { width: 6px; }
+        ::-webkit-scrollbar-track { background: #0f172a; }
+        ::-webkit-scrollbar-thumb { background: #38bdf8; border-radius: 3px; }
+        #chatBox { max-height: 250px; overflow-y: auto; }
+        .msg-bot { background: linear-gradient(135deg, #0284c7, #2563eb); border-radius: 14px 14px 14px 2px; }
+        .msg-user { background: rgba(51, 65, 85, 0.85); border-radius: 14px 14px 2px 14px; }
+        
+        /* Cyberpunk Toggle Switches */
+        .cyber-switch {
+            position: relative;
+            display: inline-block;
+            width: 44px;
+            height: 22px;
+            flex-shrink: 0;
+        }
+        .cyber-switch input {
+            opacity: 0;
+            width: 0;
+            height: 0;
+        }
+        .cyber-slider {
+            position: absolute;
+            cursor: pointer;
+            top: 0; left: 0; right: 0; bottom: 0;
+            background-color: #334155;
+            border: 1px solid #475569;
+            transition: .25s ease;
+            border-radius: 22px;
+        }
+        .cyber-slider:before {
+            position: absolute;
+            content: "";
+            height: 16px;
+            width: 16px;
+            left: 2px;
+            bottom: 2px;
+            background-color: #94a3b8;
+            transition: .25s cubic-bezier(0.4, 0, 0.2, 1);
+            border-radius: 50%;
+        }
+        .cyber-switch input:checked + .cyber-slider {
+            background: linear-gradient(135deg, #0284c7, #06b6d4);
+            border-color: #38bdf8;
+            box-shadow: 0 0 10px rgba(56, 189, 248, 0.5);
+        }
+        .cyber-switch input:checked + .cyber-slider:before {
+            transform: translateX(22px);
+            background-color: #ffffff;
+            box-shadow: 0 0 8px #ffffff;
+        }
+
+        /* Signal bars */
+        .sig-bar {
+            width: 3px;
+            border-radius: 1px;
+            background-color: #334155;
+            display: inline-block;
+            transition: all .3s;
+        }
+        .sig-bar.active {
+            background-color: #34d399;
+            box-shadow: 0 0 5px #34d399;
+        }
+    </style>
+</head>
+<body class="min-h-screen p-3 md:p-6 flex flex-col gap-4">
+
+    <!-- Top Navigation Header -->
+    <header class="glass-panel p-3.5 rounded-2xl flex items-center justify-between border border-slate-700/60 shadow-lg">
+        <div class="flex items-center gap-3">
+            <div class="w-10 h-10 rounded-xl bg-gradient-to-tr from-sky-600 to-cyan-400 flex items-center justify-center text-xl text-white shadow-[0_0_15px_rgba(14,165,233,0.5)]">
+                <i class="fa-solid fa-robot"></i>
+            </div>
+            <div>
+                <div class="flex items-center gap-2">
+                    <h1 class="orbitron text-lg md:text-xl font-extrabold tracking-wider bg-gradient-to-r from-sky-400 via-cyan-300 to-indigo-300 bg-clip-text text-transparent">AVENTO OS</h1>
+                    <span class="text-[10px] orbitron font-bold px-2 py-0.5 rounded-full bg-emerald-500/10 text-emerald-400 border border-emerald-500/30 flex items-center gap-1">
+                        <span class="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse"></span> v3.0 STT ACTIVE
+                    </span>
+                </div>
+                <p class="text-xs text-slate-400" id="sysStatus">ESP32-S3 Multimodal Companion &bull; INMP441 Microphone Node</p>
+            </div>
+        </div>
+        
+        <div class="flex items-center gap-2">
+                        <!-- PWA Install App Button -->
+            <button id="btnPwaInstall" class="hidden px-3 py-1.5 bg-gradient-to-r from-sky-500 to-indigo-600 hover:from-sky-400 hover:to-indigo-500 border border-sky-400/50 text-white rounded-xl text-xs font-bold transition-all items-center gap-1.5 shadow-[0_0_12px_rgba(56,189,248,0.5)]">
+                <i class="fa-solid fa-download"></i>
+                <span class="hidden sm:inline">Install App</span>
+            </button>
+            <!-- Customizer Modal Toggle -->
+            <button onclick="openCustomizeModal()" class="px-3 py-1.5 bg-slate-800/80 hover:bg-sky-600/30 border border-slate-700 hover:border-sky-400 text-sky-300 hover:text-white rounded-xl text-xs font-semibold transition-all flex items-center gap-1.5 shadow-sm">
+                <i class="fa-solid fa-sliders text-sky-400"></i>
+                <span class="hidden sm:inline">Customize Layout</span>
+            </button>
+            <!-- Quick Sleep/Wake Header Action -->
+            <button id="btnHeaderSleep" onclick="toggleSleepWake()" title="Toggle Sleep Mode" class="px-2.5 py-1.5 bg-slate-800 hover:bg-slate-700 border border-slate-700 text-slate-300 rounded-xl text-xs transition-colors">
+                <i class="fa-solid fa-moon"></i>
+            </button>
+        </div>
+    </header>
+
+    <!-- Main Dynamic Widgets Grid -->
+    <main id="widgetGrid" class="grid grid-cols-1 lg:grid-cols-2 gap-4 w-full">
+
+        <!-- ========================================== -->
+        <!-- WIDGET 1: REAL-TIME SYSTEM METRICS -->
+        <!-- ========================================== -->
+        <section id="widget-metrics" class="widget-card glass-panel p-4 rounded-2xl flex flex-col gap-3" data-widget-id="widget-metrics" data-widget-title="System Metrics">
+            <div class="flex items-center justify-between border-b border-slate-700/60 pb-2.5">
+                <div class="flex items-center gap-2">
+                    <i class="fa-solid fa-gauge-high text-cyan-400"></i>
+                    <h2 class="orbitron text-sm font-bold tracking-wide text-cyan-300">REAL-TIME SYSTEM METRICS</h2>
+                </div>
+                <div class="flex items-center gap-2">
+                    <span id="metricPulse" class="text-[10px] font-mono px-2 py-0.5 rounded bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 flex items-center gap-1">
+                        <span class="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-ping"></span> TELEMETRY LIVE
+                    </span>
+                </div>
+            </div>
+
+            <!-- Metrics Cards Grid -->
+            <div class="grid grid-cols-2 sm:grid-cols-4 gap-2.5">
+                <!-- Battery Level -->
+                <div class="bg-slate-800/60 p-2.5 rounded-xl border border-slate-700/50 flex flex-col justify-between">
+                    <div class="flex items-center justify-between text-xs text-slate-400">
+                        <span>Battery</span>
+                        <i id="metricBattIcon" class="fa-solid fa-bolt text-amber-400"></i>
+                    </div>
+                    <div class="my-1">
+                        <span id="metricBattPct" class="orbitron text-xl font-black text-emerald-400">98%</span>
+                        <span id="metricBattV" class="block text-[10px] text-slate-400 font-mono">4.18V &bull; USB 5V</span>
+                    </div>
+                    <div class="w-full bg-slate-700/60 h-1.5 rounded-full overflow-hidden">
+                        <div id="metricBattBar" class="bg-gradient-to-r from-emerald-500 to-cyan-400 h-full rounded-full transition-all duration-500" style="width: 98%"></div>
+                    </div>
+                </div>
+
+                <!-- CPU Temperature -->
+                <div class="bg-slate-800/60 p-2.5 rounded-xl border border-slate-700/50 flex flex-col justify-between">
+                    <div class="flex items-center justify-between text-xs text-slate-400">
+                        <span>CPU Temp</span>
+                        <i class="fa-solid fa-temperature-half text-rose-400"></i>
+                    </div>
+                    <div class="my-1">
+                        <span id="metricCpuTemp" class="orbitron text-xl font-black text-sky-300">42.0°C</span>
+                        <span id="metricCpuBadge" class="inline-block text-[9px] font-bold px-1.5 py-0.2 rounded bg-emerald-500/20 text-emerald-300 border border-emerald-500/30">OPTIMAL</span>
+                    </div>
+                    <div class="w-full bg-slate-700/60 h-1.5 rounded-full overflow-hidden">
+                        <div id="metricCpuBar" class="bg-emerald-400 h-full rounded-full transition-all duration-500" style="width: 42%"></div>
+                    </div>
+                </div>
+
+                <!-- Free Heap / Memory -->
+                <div class="bg-slate-800/60 p-2.5 rounded-xl border border-slate-700/50 flex flex-col justify-between">
+                    <div class="flex items-center justify-between text-xs text-slate-400">
+                        <span>Free Heap</span>
+                        <i class="fa-solid fa-microchip text-sky-400"></i>
+                    </div>
+                    <div class="my-1">
+                        <span id="metricHeapVal" class="orbitron text-base font-bold text-sky-200">224 KB</span>
+                        <span id="metricHeapSub" class="block text-[10px] text-slate-400 font-mono">PSRAM: 8.0 MB</span>
+                    </div>
+                    <div class="w-full bg-slate-700/60 h-1.5 rounded-full overflow-hidden">
+                        <div id="metricHeapBar" class="bg-sky-400 h-full rounded-full transition-all duration-500" style="width: 68%"></div>
+                    </div>
+                </div>
+
+                <!-- Wi-Fi RSSI -->
+                <div class="bg-slate-800/60 p-2.5 rounded-xl border border-slate-700/50 flex flex-col justify-between">
+                    <div class="flex items-center justify-between text-xs text-slate-400">
+                        <span>Wi-Fi Signal</span>
+                        <div class="flex items-end gap-0.5 h-3">
+                            <span class="sig-bar active h-1.5"></span>
+                            <span class="sig-bar active h-2"></span>
+                            <span class="sig-bar active h-2.5"></span>
+                            <span class="sig-bar active h-3"></span>
+                        </div>
+                    </div>
+                    <div class="my-1">
+                        <span id="metricRssiVal" class="orbitron text-base font-bold text-emerald-300">-52 dBm</span>
+                        <span id="metricWifiSub" class="block text-[10px] text-slate-400 truncate" title="Connected">GOUTAM CHANDRA CHAKI</span>
+                    </div>
+                    <div class="text-[9px] font-mono text-cyan-400/90 truncate">IP: <span id="metricIpVal">192.168.1.10</span></div>
+                </div>
+            </div>
+
+            <!-- Secondary Telemetry Strip: Uptime, PIR & Mic Sound Level -->
+            <div class="grid grid-cols-1 sm:grid-cols-3 gap-2 pt-1 text-xs text-slate-400">
+                <div class="flex items-center justify-between bg-slate-800/40 px-3 py-1.5 rounded-lg border border-slate-700/40">
+                    <span class="flex items-center gap-1.5"><i class="fa-solid fa-clock text-sky-400"></i> Uptime</span>
+                    <span id="metricUptimeVal" class="orbitron font-semibold text-slate-200">00:00:00</span>
+                </div>
+                <div class="flex items-center justify-between bg-slate-800/40 px-3 py-1.5 rounded-lg border border-slate-700/40">
+                    <span class="flex items-center gap-1.5" title="Debounced & Calibrated for Designated Space"><i class="fa-solid fa-person-walking text-amber-400"></i> Motion Sensor</span>
+                    <div class="flex items-center gap-1.5">
+                        <span id="pirSensBadge" class="text-[9px] px-1.5 py-0.5 rounded bg-amber-500/20 text-amber-300 font-mono">CALIBRATED</span>
+                        <span id="metricPirVal" class="font-bold text-slate-300">STANDBY</span>
+                    </div>
+                </div>
+                <div class="flex items-center gap-2 bg-slate-800/40 px-3 py-1.5 rounded-lg border border-slate-700/40">
+                    <span class="flex items-center gap-1 text-[11px] whitespace-nowrap"><i class="fa-solid fa-microphone text-rose-400"></i> Mic Audio</span>
+                    <div class="flex-grow bg-slate-700 h-1.5 rounded-full overflow-hidden">
+                        <div id="metricMicBar" class="bg-cyan-400 h-full transition-all duration-100" style="width: 10%"></div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- ========================================== -->
+        <!-- WIDGET 2: ROBOT MIC SPEECH-TO-TEXT (STT) -->
+        <!-- ========================================== -->
+        <section id="widget-stt" class="widget-card glass-panel p-4 rounded-2xl flex flex-col justify-between glow-border-rose" data-widget-id="widget-stt" data-widget-title="Robot Mic Speech-to-Text (STT)">
+            <div class="flex items-center justify-between border-b border-slate-700/60 pb-2.5 mb-2">
+                <div class="flex items-center gap-2">
+                    <i class="fa-solid fa-microphone-lines text-rose-400 text-lg"></i>
+                    <div>
+                        <h2 class="orbitron text-sm font-bold tracking-wide text-rose-300">ROBOT MIC SPEECH-TO-TEXT</h2>
+                        <span class="text-[10px] text-slate-400">Captures INMP441 Audio &bull; Gemini Multimodal &bull; OLED Display</span>
+                    </div>
+                </div>
+                <span id="sttStatusBadge" class="text-[10px] font-mono px-2 py-0.5 rounded bg-slate-800 text-slate-300 border border-slate-700 flex items-center gap-1.5">
+                    <span class="w-1.5 h-1.5 rounded-full bg-slate-400"></span> STANDBY
+                </span>
+            </div>
+
+            <!-- STT Recording Controls -->
+            <div class="flex flex-col gap-2.5 my-1">
+                <div class="flex items-center justify-between text-xs">
+                    <div class="flex items-center gap-2">
+                        <span class="text-slate-400 font-medium">Record Duration:</span>
+                        <div class="flex gap-1">
+                            <button id="btnDur2" onclick="setSttDuration(2)" class="px-2 py-0.5 rounded bg-slate-800 border border-slate-700 text-slate-300 text-[11px] hover:bg-rose-600 transition-colors">2s</button>
+                            <button id="btnDur3" onclick="setSttDuration(3)" class="px-2 py-0.5 rounded bg-rose-600 text-white font-bold border border-rose-500 text-[11px] transition-colors">3s</button>
+                            <button id="btnDur4" onclick="setSttDuration(4)" class="px-2 py-0.5 rounded bg-slate-800 border border-slate-700 text-slate-300 text-[11px] hover:bg-rose-600 transition-colors">4s</button>
+                        </div>
+                    </div>
+                    <label class="flex items-center gap-1.5 text-[11px] text-slate-300 cursor-pointer">
+                        <input type="checkbox" id="sttAutoDetect" class="accent-rose-500 w-3.5 h-3.5 cursor-pointer">
+                        <span>Auto-Listen on Voice</span>
+                    </label>
+                </div>
+
+                <!-- Main Trigger Button -->
+                <button id="btnSttRecord" onclick="startRobotMicCapture()" class="w-full py-3 bg-gradient-to-r from-rose-600 via-rose-500 to-red-500 hover:from-rose-500 hover:to-red-400 text-white font-bold rounded-xl text-sm transition-all shadow-[0_0_15px_rgba(244,63,94,0.35)] flex items-center justify-center gap-2 active:scale-98">
+                    <i class="fa-solid fa-microphone text-base"></i>
+                    <span>Capture Robot Mic & Transcribe</span>
+                </button>
+
+                <!-- Recording / Audio Progress Bar -->
+                <div class="w-full bg-slate-800/80 h-1.5 rounded-full overflow-hidden border border-slate-700/50">
+                    <div id="sttProgressBar" class="bg-gradient-to-r from-cyan-400 to-rose-400 h-full transition-all duration-100" style="width: 0%"></div>
+                </div>
+
+                <!-- Audio Playback Preview (Hidden until first capture) -->
+                <audio id="sttAudioPlayer" controls class="w-full h-8 mt-0.5 rounded-lg bg-slate-800 hidden"></audio>
+            </div>
+
+            <!-- Transcribed Text & Routed Response Viewports -->
+            <div class="flex flex-col gap-2 mt-2">
+                <!-- 1. Transcribed Text from Robot Mic -->
+                <div>
+                    <div class="flex items-center justify-between text-xs text-sky-400 font-semibold mb-1">
+                        <span class="flex items-center gap-1.5"><i class="fa-solid fa-comment-dots"></i> TRANSCRIBED SPEECH (FROM ROBOT MIC)</span>
+                        <span id="sttCharCount" class="text-[10px] text-slate-400 font-mono">0 chars</span>
+                    </div>
+                    <div id="sttTranscriptBox" class="p-2.5 bg-slate-900/90 rounded-xl border border-sky-500/30 font-medium text-slate-100 min-h-[46px] text-xs md:text-sm leading-relaxed flex items-center">
+                        <span class="text-slate-500 italic">No audio captured yet. Press 'Capture Robot Mic' to record speech through the robot's physical microphone.</span>
+                    </div>
+                </div>
+
+                <!-- 2. Gemini Response Routed to Robot OLED Display -->
+                <div>
+                    <div class="flex items-center justify-between text-xs text-emerald-400 font-semibold mb-1">
+                        <span class="flex items-center gap-1.5"><i class="fa-solid fa-tv"></i> GEMINI AI RESPONSE &bull; ROUTED TO OLED</span>
+                        <span id="sttOledBadge" class="text-[10px] text-emerald-400 font-mono">OLED SYNC READY</span>
+                    </div>
+                    <div id="sttResponseBox" class="p-2.5 bg-slate-900/90 rounded-xl border border-emerald-500/30 font-medium text-emerald-300 min-h-[46px] text-xs md:text-sm leading-relaxed flex items-center">
+                        <span class="text-slate-500 italic">Awaiting transcribed speech... Response will display here and on the physical OLED screen.</span>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- ========================================== -->
+        <!-- WIDGET 3: CAMERA VISION & FINGER GESTURES -->
+        <!-- ========================================== -->
+        <section id="widget-camera" class="widget-card glass-panel p-4 rounded-2xl flex flex-col justify-between" data-widget-id="widget-camera" data-widget-title="Live Camera & Finger Gestures">
+            <div class="flex items-center justify-between border-b border-slate-700/60 pb-2.5 mb-2">
+                <div class="flex items-center gap-2">
+                    <i class="fa-solid fa-hand-peace text-sky-400"></i>
+                    <div>
+                        <h2 class="orbitron text-sm font-bold tracking-wide text-sky-300">CAMERA & FINGER GESTURE AI</h2>
+                        <span class="text-[10px] text-amber-300/90 font-mono">☝️ 1 Finger: Time &bull; ✌️ 2 Fingers: Weather</span>
+                    </div>
+                </div>
+                <div class="flex items-center gap-1.5">
+                    <span id="engineStatusBadge" class="text-[10px] bg-sky-950/80 text-sky-300 border border-sky-500/40 px-2 py-0.5 rounded font-mono">MediaPipe AI</span>
+                    <button id="btnToggleFace" onclick="toggleFaceTracking()" class="px-2.5 py-1 bg-slate-800 hover:bg-sky-600 rounded-lg text-xs transition-colors border border-slate-700 text-slate-200">
+                        <i class="fa-solid fa-expand mr-1"></i> Track
+                    </button>
+                </div>
+            </div>
+
+            <!-- Camera Viewport -->
+            <div class="stream-container glow-border">
+                <img id="camStream" crossorigin="anonymous" src="" alt="Camera Stream Loading (Port 81)...">
+                <canvas id="canvasOverlay"></canvas>
+                <!-- HUD Overlays -->
+                <div id="hudRecBadge" class="absolute top-2 left-2 bg-black/60 px-2 py-1 rounded text-[10px] orbitron text-sky-400 border border-sky-500/30 flex items-center gap-1.5">
+                    <span class="w-1.5 h-1.5 rounded-full bg-rose-500 animate-pulse"></span> PORT 81 LIVE
+                </div>
+                <div id="gestureBadge" class="absolute bottom-2 left-2 bg-slate-900/90 px-2.5 py-1 rounded text-xs text-amber-300 border border-amber-400/50 shadow-[0_0_10px_#f59e0b] hidden transition-all z-20 flex items-center gap-1.5">🖐️ Hand Tracking Ready</div>
+                <div id="faceTarget" class="absolute hidden border-2 border-green-400 shadow-[0_0_10px_#4ade80] transition-all duration-100"></div>
+            </div>
+
+            <!-- Gesture info and quick actions -->
+            <div class="mt-3 flex justify-between items-center px-1 text-xs">
+                <span class="text-slate-400 text-[11px]"><i class="fa-solid fa-camera mr-1 text-sky-400"></i>AI Noise-Filtered Hand Tracking</span>
+                <div class="flex gap-2">
+                    <button onclick="onOneFingerGesture()" class="px-2.5 py-1 bg-slate-800 hover:bg-sky-600 rounded-lg text-[11px] text-sky-300 border border-slate-700 transition-colors">☝️ 1: Time</button>
+                    <button onclick="onTwoFingerGesture()" class="px-2.5 py-1 bg-slate-800 hover:bg-emerald-600 rounded-lg text-[11px] text-emerald-300 border border-slate-700 transition-colors">✌️ 2: Weather</button>
+                </div>
+            </div>
+        </section>
+
+        <!-- ========================================== -->
+        <!-- WIDGET 4: INTERACTIVE FEATURE CONTROL PANEL -->
+        <!-- ========================================== -->
+        <section id="widget-controls" class="widget-card glass-panel p-4 rounded-2xl flex flex-col gap-3" data-widget-id="widget-controls" data-widget-title="Feature Control Switches">
+            <div class="flex items-center justify-between border-b border-slate-700/60 pb-2.5">
+                <div class="flex items-center gap-2">
+                    <i class="fa-solid fa-sliders text-indigo-400"></i>
+                    <h2 class="orbitron text-sm font-bold tracking-wide text-indigo-300">INTERACTIVE FUNCTION CONTROLS</h2>
+                </div>
+                <span class="text-[10px] text-slate-400 font-mono">REAL-TIME SWITCHES</span>
+            </div>
+
+            <!-- Interactive Switches Grid -->
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
+                
+                <!-- 1. Face Tracking -->
+                <div class="flex items-center justify-between p-2.5 bg-slate-800/60 rounded-xl border border-slate-700/50 hover:border-sky-500/40 transition-all">
+                    <div class="flex items-center gap-2.5">
+                        <div class="w-8 h-8 rounded-lg bg-sky-500/20 text-sky-400 flex items-center justify-center text-sm">
+                            <i class="fa-solid fa-face-smile"></i>
+                        </div>
+                        <div>
+                            <p class="text-xs font-bold text-slate-200">Face Tracking</p>
+                            <p class="text-[10px] text-slate-400">Auto-align servos to face</p>
+                        </div>
+                    </div>
+                    <label class="cyber-switch">
+                        <input type="checkbox" id="swFaceTrack" onchange="toggleFaceTracking(this.checked)">
+                        <span class="cyber-slider"></span>
+                    </label>
+                </div>
+
+                <!-- 2. Continuous Auto-Listen -->
+                <div class="flex items-center justify-between p-2.5 bg-slate-800/60 rounded-xl border border-slate-700/50 hover:border-sky-500/40 transition-all">
+                    <div class="flex items-center gap-2.5">
+                        <div class="w-8 h-8 rounded-lg bg-rose-500/20 text-rose-400 flex items-center justify-center text-sm">
+                            <i class="fa-solid fa-headset"></i>
+                        </div>
+                        <div>
+                            <p class="text-xs font-bold text-slate-200">Continuous Auto-Listen</p>
+                            <p class="text-[10px] text-slate-400">Browser voice recognition</p>
+                        </div>
+                    </div>
+                    <label class="cyber-switch">
+                        <input type="checkbox" id="swAutoListen" onchange="syncAutoListen(this.checked)">
+                        <span class="cyber-slider"></span>
+                    </label>
+                </div>
+
+                <!-- 3. Sentry Guardian Mode -->
+                <div class="flex items-center justify-between p-2.5 bg-slate-800/60 rounded-xl border border-slate-700/50 hover:border-amber-500/40 transition-all">
+                    <div class="flex items-center gap-2.5">
+                        <div class="w-8 h-8 rounded-lg bg-amber-500/20 text-amber-400 flex items-center justify-center text-sm">
+                            <i class="fa-solid fa-shield-halved"></i>
+                        </div>
+                        <div>
+                            <p class="text-xs font-bold text-slate-200">Sentry Mode</p>
+                            <p class="text-[10px] text-slate-400">Vigilant alert eyes & scan</p>
+                        </div>
+                    </div>
+                    <label class="cyber-switch">
+                        <input type="checkbox" id="swSentry" onchange="toggleSentryMode(this.checked)">
+                        <span class="cyber-slider"></span>
+                    </label>
+                </div>
+
+                <!-- 4. Sleep Mode Override -->
+                <div class="flex items-center justify-between p-2.5 bg-slate-800/60 rounded-xl border border-slate-700/50 hover:border-purple-500/40 transition-all">
+                    <div class="flex items-center gap-2.5">
+                        <div class="w-8 h-8 rounded-lg bg-purple-500/20 text-purple-400 flex items-center justify-center text-sm">
+                            <i class="fa-solid fa-moon"></i>
+                        </div>
+                        <div>
+                            <p class="text-xs font-bold text-slate-200">Sleep / Standby</p>
+                            <p class="text-[10px] text-slate-400">Rest servos & line eyes</p>
+                        </div>
+                    </div>
+                    <label class="cyber-switch">
+                        <input type="checkbox" id="swSleep" onchange="setSleepState(this.checked)">
+                        <span class="cyber-slider"></span>
+                    </label>
+                </div>
+
+                <!-- 5. Stream HUD Overlays -->
+                <div class="flex items-center justify-between p-2.5 bg-slate-800/60 rounded-xl border border-slate-700/50 hover:border-emerald-500/40 transition-all">
+                    <div class="flex items-center gap-2.5">
+                        <div class="w-8 h-8 rounded-lg bg-emerald-500/20 text-emerald-400 flex items-center justify-center text-sm">
+                            <i class="fa-solid fa-crosshairs"></i>
+                        </div>
+                        <div>
+                            <p class="text-xs font-bold text-slate-200">Stream HUD</p>
+                            <p class="text-[10px] text-slate-400">Target box & badge</p>
+                        </div>
+                    </div>
+                    <label class="cyber-switch">
+                        <input type="checkbox" id="swHud" checked onchange="toggleHudOverlay(this.checked)">
+                        <span class="cyber-slider"></span>
+                    </label>
+                </div>
+
+                <!-- 6. OLED Subtitle Sync -->
+                <div class="flex items-center justify-between p-2.5 bg-slate-800/60 rounded-xl border border-slate-700/50 hover:border-cyan-500/40 transition-all">
+                    <div class="flex items-center gap-2.5">
+                        <div class="w-8 h-8 rounded-lg bg-cyan-500/20 text-cyan-400 flex items-center justify-center text-sm">
+                            <i class="fa-solid fa-tv"></i>
+                        </div>
+                        <div>
+                            <p class="text-xs font-bold text-slate-200">OLED Subtitle Sync</p>
+                            <p class="text-[10px] text-slate-400">Mirror text to robot screen</p>
+                        </div>
+                    </div>
+                    <label class="cyber-switch">
+                        <input type="checkbox" id="swOledSync" checked onchange="toggleOledSync(this.checked)">
+                        <span class="cyber-slider"></span>
+                    </label>
+                </div>
+
+                <!-- 7. Motion Calibration (Designated Space & Debounce) -->
+                <div class="flex items-center justify-between p-2.5 bg-slate-800/60 rounded-xl border border-slate-700/50 hover:border-amber-500/40 transition-all">
+                    <div class="flex items-center gap-2.5">
+                        <div class="w-8 h-8 rounded-lg bg-amber-500/20 text-amber-400 flex items-center justify-center text-sm">
+                            <i class="fa-solid fa-person-walking"></i>
+                        </div>
+                        <div>
+                            <p class="text-xs font-bold text-slate-200">Motion Calibration</p>
+                            <p class="text-[10px] text-slate-400">Designated space & debouncing</p>
+                        </div>
+                    </div>
+                    <select id="selPirSens" onchange="setPirSensitivity(this.value)" class="bg-slate-900 text-amber-300 text-xs rounded-lg px-2.5 py-1 border border-slate-700 focus:outline-none focus:border-amber-400 cursor-pointer">
+                        <option value="1">High (Wide)</option>
+                        <option value="2" selected>Balanced (Designated)</option>
+                        <option value="3">Strict (Close)</option>
+                    </select>
+                </div>
+
+            </div>
+
+            <!-- Quick Robot Mood Triggers -->
+            <div class="pt-1 border-t border-slate-700/50 flex flex-wrap gap-1.5 text-xs">
+                <span class="text-[11px] text-slate-400 self-center mr-1">Quick Moods:</span>
+                <button onclick="triggerEmotion('happy')" class="px-2 py-1 bg-slate-800 hover:bg-emerald-600 rounded-lg text-emerald-300 hover:text-white border border-slate-700 transition-all shadow-sm">😊 Happy</button>
+                <button onclick="triggerEmotion('curious')" class="px-2 py-1 bg-slate-800 hover:bg-sky-600 rounded-lg text-sky-300 hover:text-white border border-slate-700 transition-all shadow-sm">🧐 Curious</button>
+                <button onclick="triggerEmotion('love')" class="px-2 py-1 bg-slate-800 hover:bg-rose-600 rounded-lg text-rose-300 hover:text-white border border-slate-700 transition-all shadow-sm">❤️ Love</button>
+                <button onclick="triggerEmotion('dance')" class="px-2 py-1 bg-slate-800 hover:bg-purple-600 rounded-lg text-purple-300 hover:text-white border border-slate-700 transition-all shadow-sm">💃 Dance</button>
+                <button onclick="triggerEmotion('wave')" class="px-2 py-1 bg-slate-800 hover:bg-amber-600 rounded-lg text-amber-300 hover:text-white border border-slate-700 transition-all shadow-sm">👋 Wave</button>
+                <button onclick="triggerEmotion('bang')" class="px-2 py-1 bg-slate-800 hover:bg-orange-600 rounded-lg text-orange-300 hover:text-white border border-slate-700 transition-all shadow-sm">😲 Surprise</button>
+                <button onclick="triggerEmotion('wink')" class="px-2 py-1 bg-slate-800 hover:bg-yellow-600 rounded-lg text-yellow-300 hover:text-white border border-slate-700 transition-all shadow-sm">😉 Wink</button>
+                <button onclick="triggerEmotion('sentry')" class="px-2 py-1 bg-slate-800 hover:bg-red-600 rounded-lg text-red-300 hover:text-white border border-slate-700 transition-all shadow-sm">🚨 Sentry</button>
+                <button onclick="triggerEmotion('sleep')" class="px-2 py-1 bg-slate-800 hover:bg-indigo-600 rounded-lg text-indigo-300 hover:text-white border border-slate-700 transition-all shadow-sm">😴 Sleep</button>
+                <button onclick="triggerEmotion('time')" class="px-2 py-1 bg-slate-800 hover:bg-teal-600 rounded-lg text-teal-300 hover:text-white border border-slate-700 transition-all shadow-sm">⏰ Time</button>
+                <button onclick="triggerEmotion('weather')" class="px-2 py-1 bg-slate-800 hover:bg-cyan-600 rounded-lg text-cyan-300 hover:text-white border border-slate-700 transition-all shadow-sm">⛅ Weather</button>
+            </div>
+        </section>
+
+        <!-- ========================================== -->
+        <!-- WIDGET 5: AI NEURAL CORE & VOICE CHAT -->
+        <!-- ========================================== -->
+        <section id="widget-chat" class="widget-card glass-panel p-4 rounded-2xl flex flex-col justify-between" data-widget-id="widget-chat" data-widget-title="AI Neural Core & Chat">
+            <div class="flex items-center justify-between border-b border-slate-700/60 pb-2.5 mb-2">
+                <div class="flex items-center gap-2">
+                    <i class="fa-solid fa-brain text-sky-400"></i>
+                    <h2 class="orbitron text-sm font-bold tracking-wide text-sky-300">AI NEURAL CORE & CHAT</h2>
+                </div>
+                <span class="text-[10px] font-mono px-2 py-0.5 rounded bg-sky-500/10 text-sky-400 border border-sky-500/20">GEMINI 2.5 FLASH</span>
+            </div>
+
+            <!-- Messages Log -->
+            <div id="chatBox" class="flex-grow flex flex-col gap-2.5 p-2 mb-3">
+                <div class="flex gap-2">
+                    <div class="w-8 h-8 rounded-xl bg-sky-500 flex-shrink-0 flex items-center justify-center text-xs shadow-md"><i class="fa-solid fa-robot"></i></div>
+                    <div class="msg-bot p-3 text-sm shadow-md leading-relaxed">হ্যালো! আমি অ্যাভেন্টো। আপনার জন্য কী করতে পারি? আপনি রোবটের মাইক্রোফোন বা কীবোর্ড দিয়ে প্রশ্ন করতে পারেন।</div>
+                </div>
+            </div>
+
+            <!-- Voice Controls & Mic Button -->
+            <div class="bg-slate-800/50 p-3 rounded-xl border border-slate-700/60 flex flex-col items-center">
+                <p id="listenStatus" class="text-xs text-sky-400 mb-2 h-4 font-medium">Browser Mic Ready...</p>
+                <button id="btnMic" onclick="toggleListening()" class="w-14 h-14 rounded-full bg-slate-700 text-xl flex items-center justify-center text-slate-300 transition-all border-2 border-slate-600 hover:bg-slate-600 shadow-lg">
+                    <i class="fa-solid fa-microphone"></i>
+                </button>
+            </div>
+            
+            <!-- Text Chat Input -->
+            <div class="mt-2.5 flex gap-2">
+                <input type="text" id="txtInput" onkeypress="if(event.key==='Enter') sendChat()" placeholder="Type message in Bengali / English..." class="flex-grow bg-slate-800/90 border border-slate-700 rounded-xl px-3.5 py-2 text-sm focus:outline-none focus:border-sky-500 text-white placeholder-slate-500">
+                <button onclick="sendChat()" class="bg-sky-600 hover:bg-sky-500 px-4 py-2 rounded-xl text-sm font-bold transition-colors shadow-md text-white"><i class="fa-solid fa-paper-plane"></i></button>
+            </div>
+        </section>
+
+        <!-- ========================================== -->
+        <!-- WIDGET 6: POMODORO FOCUS BUDDY -->
+        <!-- ========================================== -->
+        <section id="widget-pomodoro" class="widget-card glass-panel p-4 rounded-2xl flex flex-col justify-between" data-widget-id="widget-pomodoro" data-widget-title="Pomodoro Focus Buddy">
+            <div class="flex justify-between items-center border-b border-slate-700/60 pb-2 mb-2">
+                <div class="flex items-center gap-2">
+                    <i class="fa-solid fa-stopwatch text-rose-500"></i>
+                    <h2 class="orbitron text-sm font-bold tracking-wide text-rose-400">POMODORO FOCUS BUDDY</h2>
+                </div>
+                <span id="pomoPhaseBadge" class="text-[10px] uppercase font-bold tracking-wider px-2 py-0.5 rounded bg-slate-700 text-slate-300 border border-slate-600">IDLE</span>
+            </div>
+            
+            <div class="flex items-center justify-between my-2">
+                <div class="flex flex-col">
+                    <span id="pomoTimeDisplay" class="orbitron text-3xl font-extrabold text-white tracking-widest drop-shadow-[0_0_12px_rgba(244,63,94,0.4)]">25:00</span>
+                    <span id="pomoStatusText" class="text-[11px] text-slate-400">25m Focus &bull; 5m Break &bull; Auto OLED Sync</span>
+                </div>
+                <div class="flex gap-1.5">
+                    <button id="btnPomoStart" onclick="togglePomodoro()" class="px-3.5 py-2 bg-rose-600 hover:bg-rose-500 text-white rounded-xl text-xs font-bold transition-all shadow-[0_0_10px_rgba(244,63,94,0.3)]">
+                        <i class="fa-solid fa-play mr-1"></i> Start
+                    </button>
+                    <button onclick="resetPomodoro()" title="Reset" class="px-3 py-2 bg-slate-700 hover:bg-slate-600 text-slate-300 rounded-xl text-xs transition-all">
+                        <i class="fa-solid fa-rotate-right"></i>
+                    </button>
+                    <button onclick="startPomodoroBreak()" title="Take 5m Break" class="px-3 py-2 bg-emerald-600/30 hover:bg-emerald-600 border border-emerald-500/40 text-emerald-300 hover:text-white rounded-xl text-xs transition-all">
+                        <i class="fa-solid fa-mug-hot"></i>
+                    </button>
+                </div>
+            </div>
+            
+            <div class="pt-2 border-t border-slate-700/50 flex justify-between items-center text-[11px] text-slate-400">
+                <span>Completed: <span id="pomoTomatoes" class="font-bold text-rose-400">None yet</span></span>
+                <span class="text-xs text-rose-400/80">Voice: "পোমোডোরো শুরু করো"</span>
+            </div>
+        </section>
+
+        <!-- ========================================== -->
+        <!-- WIDGET 7: MANUAL PAN / TILT SERVOS -->
+        <!-- ========================================== -->
+        <section id="widget-servos" class="widget-card glass-panel p-4 rounded-2xl flex flex-col justify-between" data-widget-id="widget-servos" data-widget-title="Pan-Tilt Servo Controls">
+            <div class="flex items-center justify-between border-b border-slate-700/60 pb-2 mb-2">
+                <div class="flex items-center gap-2">
+                    <i class="fa-solid fa-gamepad text-emerald-400"></i>
+                    <h2 class="orbitron text-sm font-bold tracking-wide text-emerald-300">MANUAL SERVO GIMBAL</h2>
+                </div>
+                <div class="text-[11px] text-slate-400 font-mono">Pan: <span id="panVal" class="text-sky-400">90</span>° &bull; Tilt: <span id="tiltVal" class="text-sky-400">90</span>°</div>
+            </div>
+
+            <!-- Servo D-Pad Controls -->
+            <div class="grid grid-cols-3 gap-2 max-w-[260px] mx-auto my-2 text-center text-xl">
+                <div></div>
+                <button onclick="sendServo(pan, Math.max(30, tilt - 20))" title="Tilt Up" class="bg-slate-800/80 p-3 rounded-xl hover:bg-sky-600 text-slate-200 border border-slate-700 active:scale-95 transition-all"><i class="fa-solid fa-chevron-up"></i></button>
+                <div></div>
+                <button onclick="sendServo(Math.max(20, pan - 25), tilt)" title="Pan Left" class="bg-slate-800/80 p-3 rounded-xl hover:bg-sky-600 text-slate-200 border border-slate-700 active:scale-95 transition-all"><i class="fa-solid fa-chevron-left"></i></button>
+                <button onclick="sendServo(90, 90)" title="Center Head" class="bg-slate-800/80 p-3 rounded-xl hover:bg-sky-600 text-slate-200 border border-slate-700 active:scale-95 transition-all"><i class="fa-solid fa-arrows-to-dot text-sky-400"></i></button>
+                <button onclick="sendServo(Math.min(160, pan + 25), tilt)" title="Pan Right" class="bg-slate-800/80 p-3 rounded-xl hover:bg-sky-600 text-slate-200 border border-slate-700 active:scale-95 transition-all"><i class="fa-solid fa-chevron-right"></i></button>
+                <div></div>
+                <button onclick="sendServo(pan, Math.min(150, tilt + 20))" title="Tilt Down" class="bg-slate-800/80 p-3 rounded-xl hover:bg-sky-600 text-slate-200 border border-slate-700 active:scale-95 transition-all"><i class="fa-solid fa-chevron-down"></i></button>
+                <div></div>
+            </div>
+            
+            <p class="text-[11px] text-center text-slate-400">Fine-tune robot head angle &bull; Smooth PID transition</p>
+        </section>
+
+        <!-- ========================================== -->
+        <!-- WIDGET 8: TASK REMINDERS -->
+        <!-- ========================================== -->
+        <section id="widget-reminders" class="widget-card glass-panel p-4 rounded-2xl flex flex-col justify-between" data-widget-id="widget-reminders" data-widget-title="Task Reminders">
+            <div class="flex items-center justify-between border-b border-slate-700/60 pb-2 mb-2">
+                <div class="flex items-center gap-2">
+                    <i class="fa-solid fa-bell text-amber-400"></i>
+                    <h2 class="orbitron text-sm font-bold tracking-wide text-amber-300">REMINDERS & SCHEDULER</h2>
+                </div>
+                <span class="text-[10px] text-slate-400 font-mono">VOICE NOTIFICATION</span>
+            </div>
+
+            <div class="flex flex-col gap-2">
+                <div class="flex gap-2 text-xs">
+                    <input type="time" id="remTime" class="bg-slate-800/90 border border-slate-700 rounded-xl p-2 text-white">
+                    <input type="text" id="remText" placeholder="What to remind?" class="flex-grow bg-slate-800/90 border border-slate-700 rounded-xl px-3 py-2 text-white placeholder-slate-500">
+                    <button onclick="addReminder()" class="bg-amber-600 hover:bg-amber-500 px-3.5 rounded-xl font-bold text-white transition-all">+</button>
+                </div>
+                <ul id="remList" class="text-xs text-slate-300 flex flex-col gap-1.5 mt-1 max-h-32 overflow-y-auto">
+                    <!-- Reminders will appear here -->
+                </ul>
+            </div>
+        </section>
+
+    </main>
+
+    <!-- ========================================== -->
+    <!-- WIDGET CUSTOMIZER MODAL -->
+    <!-- ========================================== -->
+    <div id="customizerModal" class="fixed inset-0 z-50 bg-black/75 backdrop-blur-md flex items-center justify-center p-4 hidden">
+        <div class="glass-panel w-full max-w-lg rounded-2xl border border-slate-700 p-5 shadow-2xl flex flex-col max-h-[90vh]">
+            <!-- Modal Header -->
+            <div class="flex items-center justify-between border-b border-slate-700/80 pb-3 mb-4">
+                <div class="flex items-center gap-2.5">
+                    <i class="fa-solid fa-sliders text-sky-400 text-lg"></i>
+                    <h3 class="orbitron text-base font-bold text-white tracking-wide">DASHBOARD WIDGET CUSTOMIZER</h3>
+                </div>
+                <button onclick="closeCustomizeModal()" class="w-8 h-8 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-400 hover:text-white flex items-center justify-center transition-colors">
+                    <i class="fa-solid fa-xmark"></i>
+                </button>
+            </div>
+            
+            <p class="text-xs text-slate-300 mb-3">Toggle widget visibility or rearrange their display order using the Up and Down arrows:</p>
+
+            <!-- Customizer List Container -->
+            <div id="customizerList" class="flex-grow overflow-y-auto flex flex-col gap-2 pr-1 mb-4">
+                <!-- Dynamically rendered widget list items -->
+            </div>
+
+            <!-- Modal Footer -->
+            <div class="pt-3 border-t border-slate-700/80 flex items-center justify-between">
+                <button onclick="resetLayoutToDefault()" class="px-3 py-1.5 bg-slate-800 hover:bg-rose-600/30 border border-slate-700 hover:border-rose-500 text-xs font-semibold text-rose-300 hover:text-rose-200 rounded-xl transition-all">
+                    <i class="fa-solid fa-rotate-left mr-1"></i> Reset Default
+                </button>
+                <button onclick="closeCustomizeModal()" class="px-4 py-1.5 bg-sky-600 hover:bg-sky-500 text-xs font-bold text-white rounded-xl shadow-md transition-all">
+                    Done
+                </button>
+            </div>
+        </div>
+    </div>
+
+<script>
+// ==========================================
+// 1. CONFIGURATION & STATE
+// ==========================================
+let API_KEY = localStorage.getItem('avento_gemini_key') || "";
+fetch('/api/config').then(r => r.json()).then(c => { if(c.gemini_key && !API_KEY) API_KEY = c.gemini_key; }).catch(()=>{});
+const SYS_PROMPT = "You are AVENTO, a friendly AI desktop robot companion with camera vision in Bangladesh. Respond in Bengali if user speaks Bengali, English if English. Keep response SHORT: max 2 sentences. Prepend ONE action tag at start: [nod] [happy] [curious] [love] [sentry] [dance] [sleep] [wave] [bang].";
+
+// Robot & Dashboard States
+let isFaceTracking = false;
+let isListening = false;
+let autoListenMode = false;
+let isSentryMode = false;
+let isRobotSleeping = false;
+let isHudEnabled = true;
+let isOledSyncEnabled = true;
+let pan = 90, tilt = 90;
+
+let weatherContext = "";
+let currentTemp = "30";
+let weatherSummary = "আকাশ পরিষ্কার এবং তাপমাত্রা ৩০ ডিগ্রি সেলসিয়াস।";
+let reminders = [];
+
+// Robot Mic Speech-to-Text States
+let sttRecordSec = 3;
+let isRecordingRobotMic = false;
+let lastAutoSttTime = 0;
+let lastSttResponseText = "";
+
+// Default Widget Order
+const DEFAULT_WIDGET_ORDER = [
+    'widget-metrics',
+    'widget-stt',
+    'widget-camera',
+    'widget-controls',
+    'widget-chat',
+    'widget-pomodoro',
+    'widget-servos',
+    'widget-reminders'
+];
+
+const WIDGET_NAMES = {
+    'widget-metrics': { title: 'Real-Time System Metrics', icon: 'fa-gauge-high', color: 'text-cyan-400' },
+    'widget-stt': { title: 'Robot Mic Speech-to-Text (STT)', icon: 'fa-microphone-lines', color: 'text-rose-400' },
+    'widget-camera': { title: 'Live Camera & AI Vision', icon: 'fa-video', color: 'text-sky-400' },
+    'widget-controls': { title: 'Feature Control Switches', icon: 'fa-sliders', color: 'text-indigo-400' },
+    'widget-chat': { title: 'AI Neural Core & Voice', icon: 'fa-brain', color: 'text-sky-400' },
+    'widget-pomodoro': { title: 'Pomodoro Focus Buddy', icon: 'fa-stopwatch', color: 'text-rose-400' },
+    'widget-servos': { title: 'Pan-Tilt Gimbal Controls', icon: 'fa-gamepad', color: 'text-emerald-400' },
+    'widget-reminders': { title: 'Reminders & Scheduler', icon: 'fa-bell', color: 'text-amber-400' }
+};
+
+let currentWidgetOrder = [...DEFAULT_WIDGET_ORDER];
+let currentWidgetVisibility = {};
+DEFAULT_WIDGET_ORDER.forEach(id => currentWidgetVisibility[id] = true);
+
+// ==========================================
+// 2. INITIALIZATION
+// ==========================================
+const API_BASE = (window.location.protocol.startsWith('http') && window.location.hostname) ? '' : 'http://192.168.1.3';
+
+window.onload = () => {
+    // 1. Restore Custom Widget Layout
+    loadSavedLayout();
+
+    // 2. Start Camera on dedicated port 81 (FreeRTOS Stream Server)
+    const streamImg = document.getElementById('camStream');
+    if (streamImg) {
+        const host = window.location.hostname || "192.168.1.3";
+        const proto = window.location.protocol.startsWith('http') ? window.location.protocol : 'http:';
+        const streamUrl = proto + "//" + host + ":81/stream";
+        streamImg.src = streamUrl;
+        streamImg.onerror = () => {
+            console.warn("Camera stream interrupted, reconnecting...");
+            setTimeout(() => {
+                streamImg.src = streamUrl + "?t=" + Date.now();
+            }, 1200);
+        };
+    }
+
+    initFaceTracking();
+    initFingerGestureRecognition();
+    
+    // 3. Start Telemetry Polling (every 2 seconds)
+    fetchMetrics();
+    setInterval(fetchMetrics, 2000);
+
+    // 4. Fetch Weather
+    fetch("https://api.open-meteo.com/v1/forecast?latitude=23.81&longitude=90.41&current_weather=true")
+      .then(r => r.json())
+      .then(data => {
+         currentTemp = data.current_weather.temperature;
+         let wc = data.current_weather.weathercode;
+         let desc = "পরিষ্কার";
+         if (wc > 50 && wc < 70) desc = "বৃষ্টি";
+         else if (wc >= 70 && wc < 80) desc = "তুষার";
+         else if (wc >= 80) desc = "ঝড়-বৃষ্টি";
+         else if (wc > 0 && wc < 4) desc = "আংশিক মেঘলা";
+         weatherSummary = `আজকের তাপমাত্রা ${currentTemp} ডিগ্রি সেলসিয়াস এবং আকাশ ${desc}।`;
+         weatherContext = ` Current Weather in Dhaka: ${currentTemp}°C, ${desc}.`;
+      }).catch(e => console.log(e));
+      
+    // 5. Start Reminder Checker
+    setInterval(checkReminders, 10000);
+};
+
+// ==========================================
+// 3. DYNAMIC SYSTEM METRICS POLLER
+// ==========================================
+async function fetchMetrics() {
+    try {
+        const res = await fetch(`${API_BASE}/metrics`);
+        if (!res.ok) throw new Error("Metrics response not OK");
+        const data = await res.json();
+        
+        // 1. Battery Telemetry
+        const battPct = data.battery_pct !== undefined ? data.battery_pct : 98;
+        const battV = data.battery_v !== undefined ? data.battery_v : 4.18;
+        const isCharging = data.is_charging !== undefined ? data.is_charging : true;
+        
+        document.getElementById('metricBattPct').innerText = battPct + "%";
+        document.getElementById('metricBattV').innerText = battV.toFixed(2) + "V • " + (isCharging ? "USB 5V" : "Battery");
+        document.getElementById('metricBattBar').style.width = battPct + "%";
+        
+        const bIcon = document.getElementById('metricBattIcon');
+        if (isCharging) {
+            bIcon.className = "fa-solid fa-bolt text-amber-400";
+        } else if (battPct > 75) {
+            bIcon.className = "fa-solid fa-battery-full text-emerald-400";
+        } else if (battPct > 25) {
+            bIcon.className = "fa-solid fa-battery-half text-amber-400";
+        } else {
+            bIcon.className = "fa-solid fa-battery-quarter text-rose-500";
+        }
+
+        // 2. CPU Temperature
+        const temp = data.cpu_temp !== undefined ? data.cpu_temp : 42.0;
+        document.getElementById('metricCpuTemp').innerText = temp.toFixed(1) + "°C";
+        const tempPercent = Math.min(100, Math.max(0, ((temp - 20) / 60) * 100));
+        const tempBar = document.getElementById('metricCpuBar');
+        const tempBadge = document.getElementById('metricCpuBadge');
+        tempBar.style.width = tempPercent + "%";
+
+        if (temp < 50) {
+            tempBar.className = "bg-emerald-400 h-full rounded-full transition-all duration-500";
+            tempBadge.className = "inline-block text-[9px] font-bold px-1.5 py-0.2 rounded bg-emerald-500/20 text-emerald-300 border border-emerald-500/30";
+            tempBadge.innerText = "OPTIMAL";
+        } else if (temp < 65) {
+            tempBar.className = "bg-amber-400 h-full rounded-full transition-all duration-500";
+            tempBadge.className = "inline-block text-[9px] font-bold px-1.5 py-0.2 rounded bg-amber-500/20 text-amber-300 border border-amber-500/30";
+            tempBadge.innerText = "WARM";
+        } else {
+            tempBar.className = "bg-rose-500 h-full rounded-full transition-all duration-500";
+            tempBadge.className = "inline-block text-[9px] font-bold px-1.5 py-0.2 rounded bg-rose-500/20 text-rose-300 border border-rose-500/30 animate-pulse";
+            tempBadge.innerText = "THROTTLING";
+        }
+
+        // 3. Free Heap & PSRAM
+        if (data.free_heap !== undefined) {
+            const freeKb = Math.round(data.free_heap / 1024);
+            const totalKb = data.total_heap ? Math.round(data.total_heap / 1024) : 320;
+            const heapPercent = Math.min(100, Math.round((freeKb / totalKb) * 100));
+            document.getElementById('metricHeapVal').innerText = freeKb + " KB";
+            document.getElementById('metricHeapBar').style.width = heapPercent + "%";
+            
+            let psramStr = data.total_psram ? ((data.free_psram / 1048576).toFixed(1) + "MB Free") : "No PSRAM";
+            document.getElementById('metricHeapSub').innerText = "PSRAM: " + psramStr;
+        }
+
+        // 4. Wi-Fi RSSI & IP
+        if (data.wifi_rssi !== undefined) {
+            document.getElementById('metricRssiVal').innerText = data.wifi_rssi + " dBm";
+            if (data.wifi_ssid) document.getElementById('metricWifiSub').innerText = data.wifi_ssid;
+            if (data.wifi_ip) document.getElementById('metricIpVal').innerText = data.wifi_ip;
+        }
+
+        // 5. Uptime
+        if (data.uptime_s !== undefined) {
+            let s = data.uptime_s;
+            let hrs = Math.floor(s / 3600);
+            let mins = Math.floor((s % 3600) / 60);
+            let secs = s % 60;
+            let str = (hrs < 10 ? '0' + hrs : hrs) + ":" + (mins < 10 ? '0' + mins : mins) + ":" + (secs < 10 ? '0' + secs : secs);
+            document.getElementById('metricUptimeVal').innerText = str;
+        }
+
+        // 6. PIR Motion
+        if (data.pir_state !== undefined) {
+            const pirElem = document.getElementById('metricPirVal');
+            if (data.pir_state === 1) {
+                pirElem.innerText = "MOTION!";
+                pirElem.className = "font-bold text-amber-400 animate-pulse";
+            } else {
+                pirElem.innerText = "STANDBY";
+                pirElem.className = "font-semibold text-slate-300";
+            }
+            if (data.pir_sens !== undefined) {
+                const sensBadge = document.getElementById('pirSensBadge');
+                if (sensBadge) {
+                    const sensLabels = { 1: "HIGH SENS", 2: "CALIBRATED", 3: "STRICT RANGE" };
+                    sensBadge.innerText = sensLabels[data.pir_sens] || "CALIBRATED";
+                }
+                const sel = document.getElementById('selPirSens');
+                if (sel && document.activeElement !== sel) {
+                    sel.value = String(data.pir_sens);
+                }
+            }
+        }
+
+        // 7. Live Mic Energy
+        if (data.mic_level !== undefined) {
+            let micWidth = Math.min(100, Math.max(5, Math.round((data.mic_level / 30000) * 100)));
+            document.getElementById('metricMicBar').style.width = micWidth + "%";
+            
+            // Auto-trigger STT on loud voice spike if enabled
+            const autoStt = document.getElementById('sttAutoDetect');
+            if (autoStt && autoStt.checked && !isRecordingRobotMic && data.mic_level > 24000) {
+                let now = Date.now();
+                if (now - lastAutoSttTime > 8000) { // 8 second cooldown
+                    lastAutoSttTime = now;
+                    startRobotMicCapture();
+                }
+            }
+        }
+
+        // 8. Sync Robot Sleep Switch
+        if (data.is_sleeping !== undefined) {
+            isRobotSleeping = data.is_sleeping;
+            const swSleep = document.getElementById('swSleep');
+            if (swSleep && swSleep.checked !== isRobotSleeping) {
+                swSleep.checked = isRobotSleeping;
+            }
+        }
+
+        // Telemetry alive indicator
+        const pulse = document.getElementById('metricPulse');
+        if (pulse) {
+            pulse.innerHTML = '<span class="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-ping"></span> TELEMETRY LIVE';
+            pulse.className = 'text-[10px] font-mono px-2 py-0.5 rounded bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 flex items-center gap-1';
+        }
+
+    } catch(err) {
+        const pulse = document.getElementById('metricPulse');
+        if (pulse) {
+            pulse.innerHTML = '<span class="w-1.5 h-1.5 rounded-full bg-amber-400"></span> RECONNECTING...';
+            pulse.className = 'text-[10px] font-mono px-2 py-0.5 rounded bg-amber-500/10 text-amber-400 border border-amber-500/20 flex items-center gap-1';
+        }
+    }
+}
+
+// ==========================================
+// 4. SPEECH-TO-TEXT (STT) MODULE LOGIC
+// ==========================================
+function setSttDuration(sec) {
+    sttRecordSec = sec;
+    [2, 3, 4].forEach(s => {
+        const btn = document.getElementById('btnDur' + s);
+        if (btn) {
+            if (s === sec) {
+                btn.className = "px-2 py-0.5 rounded bg-rose-600 text-white font-bold border border-rose-500 text-[11px] transition-colors";
+            } else {
+                btn.className = "px-2 py-0.5 rounded bg-slate-800 border border-slate-700 text-slate-300 text-[11px] hover:bg-rose-600 transition-colors";
+            }
+        }
+    });
+}
+
+async function startRobotMicCapture() {
+    if (isRecordingRobotMic) return;
+    isRecordingRobotMic = true;
+
+    const btn = document.getElementById('btnSttRecord');
+    const badge = document.getElementById('sttStatusBadge');
+    const pBar = document.getElementById('sttProgressBar');
+    const transcriptBox = document.getElementById('sttTranscriptBox');
+    const responseBox = document.getElementById('sttResponseBox');
+    const oledBadge = document.getElementById('sttOledBadge');
+
+    // UI Recording State
+    badge.innerHTML = '<span class="w-1.5 h-1.5 rounded-full bg-rose-500 animate-ping"></span> RECORDING INMP441...';
+    badge.className = 'text-[10px] font-mono px-2 py-0.5 rounded bg-rose-500/20 text-rose-300 border border-rose-500/40 flex items-center gap-1.5';
+    btn.innerHTML = `<i class="fa-solid fa-circle-dot animate-pulse text-rose-300"></i> Recording Robot Mic (${sttRecordSec}s)...`;
+    btn.classList.add('recording-pulse');
+
+    transcriptBox.innerHTML = '<span class="text-sky-300/80 animate-pulse"><i class="fa-solid fa-microphone mr-2"></i>Listening through robot onboard microphone...</span>';
+    responseBox.innerHTML = '<span class="text-slate-500 italic">Waiting for transcription...</span>';
+    oledBadge.innerText = 'WAITING FOR AUDIO';
+
+    // Animate progress bar during recording
+    let startTime = Date.now();
+    let durationMs = sttRecordSec * 1000;
+    let animInterval = setInterval(() => {
+        let elapsed = Date.now() - startTime;
+        let pct = Math.min(100, (elapsed / durationMs) * 100);
+        pBar.style.width = pct + "%";
+        if (elapsed >= durationMs) clearInterval(animInterval);
+    }, 50);
+
+    try {
+        // Fetch audio stream directly from ESP32-S3 INMP441 microphone
+        const res = await fetch(`${API_BASE}/mic_audio?sec=${sttRecordSec}`);
+        if (!res.ok) throw new Error("ESP32 Mic capture failed: " + res.status);
+        const audioBlob = await res.blob();
+        clearInterval(animInterval);
+        pBar.style.width = "100%";
+
+        // Show audio player preview so user can hear the robot's mic
+        const audioPlayer = document.getElementById('sttAudioPlayer');
+        if (audioPlayer) {
+            audioPlayer.src = URL.createObjectURL(audioBlob);
+            audioPlayer.classList.remove('hidden');
+        }
+
+        // Transcribing State
+        badge.innerHTML = '<span class="w-1.5 h-1.5 rounded-full bg-sky-400 animate-spin"></span> TRANSCRIBING WITH GEMINI...';
+        badge.className = 'text-[10px] font-mono px-2 py-0.5 rounded bg-sky-500/20 text-sky-300 border border-sky-500/40 flex items-center gap-1.5';
+        btn.innerHTML = '<i class="fa-solid fa-circle-notch fa-spin"></i> Processing Speech with Gemini...';
+        transcriptBox.innerHTML = '<span class="text-sky-300/80 animate-pulse"><i class="fa-solid fa-brain mr-2"></i>Gemini Multimodal Speech-to-Text transcribing...</span>';
+
+        // Convert Audio Blob to Base64
+        const base64Audio = await blobToBase64(audioBlob);
+
+        // Send to Gemini API for Speech-to-Text & Intelligence Response
+        await processRobotAudioWithGemini(base64Audio);
+
+    } catch (err) {
+        console.error("STT Error:", err);
+        badge.innerHTML = '<span class="w-1.5 h-1.5 rounded-full bg-rose-500"></span> ERROR';
+        badge.className = 'text-[10px] font-mono px-2 py-0.5 rounded bg-rose-500/20 text-rose-300 border border-rose-500/40 flex items-center gap-1.5';
+        transcriptBox.innerHTML = `<span class="text-rose-400"><i class="fa-solid fa-triangle-exclamation mr-1.5"></i>Error: ${err.message}</span>`;
+    } finally {
+        isRecordingRobotMic = false;
+        btn.innerHTML = '<i class="fa-solid fa-microphone text-base"></i><span>Capture Robot Mic & Transcribe</span>';
+        btn.classList.remove('recording-pulse');
+        setTimeout(() => { pBar.style.width = "0%"; }, 1500);
+    }
+}
+
+function blobToBase64(blob) {
+    return new Promise((resolve, reject) => {
+        const reader = new FileReader();
+        reader.onloadend = () => {
+            const dataUrl = reader.result;
+            const base64 = dataUrl.split(',')[1];
+            resolve(base64);
+        };
+        reader.onerror = reject;
+        reader.readAsDataURL(blob);
+    });
+}
+
+async function processRobotAudioWithGemini(base64Audio) {
+    const badge = document.getElementById('sttStatusBadge');
+    const transcriptBox = document.getElementById('sttTranscriptBox');
+    const responseBox = document.getElementById('sttResponseBox');
+    const oledBadge = document.getElementById('sttOledBadge');
+    const charCount = document.getElementById('sttCharCount');
+
+    const promptText = "You are the Speech-to-Text transcriber and conversational AI for the AVENTO robot companion.\n" +
+      "Task 1: Transcribe the user's speech from this microphone audio verbatim. If silence or unintelligible noise, write 'No speech detected'.\n" +
+      "Task 2: Provide a friendly, short response (1-2 sentences, max 15-20 words) suitable for display on the robot's physical OLED screen.\n" +
+      "Include ONE emotion tag at the start of response: [happy], [curious], [love], [nod], [dance], [sentry].\n" +
+      "CRITICAL FORMAT:\n" +
+      "TRANSCRIPT: <transcribed text>\n" +
+      "RESPONSE: [emotion] <concise response text>";
+
+    const url = "https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=" + API_KEY;
+
+    const payload = {
+        contents: [{
+            parts: [
+                { inline_data: { mime_type: "audio/wav", data: base64Audio } },
+                { text: promptText }
+            ]
+        }],
+        generationConfig: { maxOutputTokens: 180, temperature: 0.3, thinkingConfig: { thinkingBudget: 0 } }
+    };
+
+    const res = await fetch(url, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(payload)
+    });
+
+    const data = await res.json();
+    if (data.error) throw new Error(data.error.message);
+
+    const rawText = data.candidates?.[0]?.content?.parts?.[0]?.text || "No response received";
+    
+    // Parse TRANSCRIPT and RESPONSE
+    let transcript = "";
+    let response = "";
+
+    const tMatch = rawText.match(/TRANSCRIPT:\s*([\s\S]*?)(?=\nRESPONSE:|$)/i);
+    if (tMatch) transcript = tMatch[1].trim();
+
+    const rMatch = rawText.match(/RESPONSE:\s*([\s\S]*)/i);
+    if (rMatch) response = rMatch[1].trim();
+
+    if (!transcript) transcript = rawText.trim();
+    if (!response) response = "[nod] " + rawText.trim();
+
+    // 1. Display Transcribed Text on Dashboard
+    transcriptBox.innerText = transcript;
+    if (charCount) charCount.innerText = transcript.length + " chars";
+
+    // 2. Display Response on Dashboard
+    responseBox.innerText = response;
+    lastSttResponseText = response;
+
+    // 3. Append to AI Neural Chat Log
+    appendMsg(transcript, 'user');
+    appendMsg(response, 'bot');
+
+    // 4. ROUTE DIRECTLY TO ROBOT'S ONBOARD OLED DISPLAY
+    badge.innerHTML = '<span class="w-1.5 h-1.5 rounded-full bg-emerald-400"></span> ROUTED TO OLED ✓';
+    badge.className = 'text-[10px] font-mono px-2 py-0.5 rounded bg-emerald-500/20 text-emerald-300 border border-emerald-500/40 flex items-center gap-1.5';
+    oledBadge.innerText = 'DISPLAYED ON OLED ✓';
+
+    let tag = "nod";
+    const tagMatch = response.match(/\[(.*?)\]/);
+    if (tagMatch) tag = tagMatch[1];
+    let cleanResponse = response.replace(/\[.*?\]/g, '').trim();
+
+    // Send to ESP32 Firmware to render on SSD1306 OLED screen!
+    if (isOledSyncEnabled) {
+        fetch(`${API_BASE}/bot_action?a=${tag}&t=${encodeURIComponent(cleanResponse)}`).catch(()=>{});
+    }
+
+    // Voice speak on dashboard
+    speak(cleanResponse);
+}
+
+function replaySttResponse() {
+    if (lastSttResponseText) {
+        let clean = lastSttResponseText.replace(/\[.*?\]/g, '').trim();
+        speak(clean);
+    }
+}
+
+// ==========================================
+// 5. INTERACTIVE SWITCH CONTROLLERS
+// ==========================================
+function toggleFaceTracking(val) {
+    if (val !== undefined) isFaceTracking = val;
+    else isFaceTracking = !isFaceTracking;
+
+    const sw = document.getElementById('swFaceTrack');
+    if (sw) sw.checked = isFaceTracking;
+
+    const btn = document.getElementById('btnToggleFace');
+    if (btn) {
+        if (isFaceTracking) {
+            btn.classList.add('bg-sky-600', 'border-sky-400');
+            btn.classList.remove('bg-slate-800');
+            btn.innerHTML = '<i class="fa-solid fa-compress mr-1"></i> Tracking ON';
+        } else {
+            btn.classList.remove('bg-sky-600', 'border-sky-400');
+            btn.classList.add('bg-slate-800');
+            btn.innerHTML = '<i class="fa-solid fa-expand mr-1"></i> Track';
+            document.getElementById('faceTarget').style.display = 'none';
+        }
+    }
+}
+
+function syncAutoListen(val) {
+    autoListenMode = val;
+    if (autoListenMode && !isListening) {
+        recognition.start();
+    }
+}
+
+function toggleSentryMode(val) {
+    isSentryMode = val;
+    if (isSentryMode) {
+        fetch(`${API_BASE}/bot_action?a=sentry&t=SENTRY%20ACTIVE`).catch(()=>{});
+        showGestureBadge("🛡️ Sentry Mode Armed");
+    } else {
+        fetch(`${API_BASE}/bot_action?a=nod&t=Ready`).catch(()=>{});
+        showGestureBadge("🛡️ Sentry Mode Standby");
+    }
+}
+
+function setSleepState(val) {
+    isRobotSleeping = val;
+    if (isRobotSleeping) {
+        fetch(`${API_BASE}/bot_action?a=sleep&t=Zzz...`).catch(()=>{});
+        showGestureBadge("🌙 Robot Resting");
+    } else {
+        fetch(`${API_BASE}/bot_action?a=wake&t=Awake%20Ready`).catch(()=>{});
+        showGestureBadge("☀️ Robot Awake");
+    }
+}
+
+function toggleSleepWake() {
+    setSleepState(!isRobotSleeping);
+    const sw = document.getElementById('swSleep');
+    if (sw) sw.checked = isRobotSleeping;
+}
+
+function toggleHudOverlay(val) {
+    isHudEnabled = val;
+    const hudBadge = document.getElementById('hudRecBadge');
+    const faceTarget = document.getElementById('faceTarget');
+    if (hudBadge) hudBadge.style.display = isHudEnabled ? 'flex' : 'none';
+    if (!isHudEnabled && faceTarget) faceTarget.style.display = 'none';
+}
+
+function toggleOledSync(val) {
+    isOledSyncEnabled = val;
+    showGestureBadge(isOledSyncEnabled ? "📺 OLED Sync Enabled" : "📺 OLED Sync Disabled");
+}
+
+function triggerEmotion(act) {
+    let tag = act;
+    let label = act.toUpperCase();
+    fetch(`${API_BASE}/bot_action?a=${tag}&t=${label}`).catch(()=>{});
+    showGestureBadge("🤖 Emotion: " + label);
+}
+
+function setPirSensitivity(lvl) {
+    fetch(`${API_BASE}/bot_action?a=pir_sens&level=` + lvl).catch(e => console.error(e));
+    const labels = { "1": "High Sensitivity (Wide)", "2": "Balanced (Designated Space)", "3": "Strict (Close Range)" };
+    showGestureBadge("🚶 Motion: " + (labels[lvl] || "Calibrated"));
+}
+
+// ==========================================
+// 6. WIDGET CUSTOMIZER & REARRANGE ENGINE
+// ==========================================
+function openCustomizeModal() {
+    renderCustomizerList();
+    document.getElementById('customizerModal').classList.remove('hidden');
+}
+
+function closeCustomizeModal() {
+    document.getElementById('customizerModal').classList.add('hidden');
+    saveLayout();
+}
+
+function renderCustomizerList() {
+    const container = document.getElementById('customizerList');
+    container.innerHTML = '';
+
+    currentWidgetOrder.forEach((id, idx) => {
+        const meta = WIDGET_NAMES[id] || { title: id, icon: 'fa-cubes', color: 'text-sky-400' };
+        const isVis = currentWidgetVisibility[id] !== false;
+
+        const row = document.createElement('div');
+        row.className = "flex items-center justify-between p-2.5 bg-slate-800/80 rounded-xl border border-slate-700/60";
+        row.innerHTML = `
+            <div class="flex items-center gap-3">
+                <input type="checkbox" id="chk_${id}" ${isVis ? 'checked' : ''} onchange="toggleWidgetVisibility('${id}', this.checked)" class="accent-sky-500 w-4 h-4 cursor-pointer">
+                <div class="flex items-center gap-2">
+                    <i class="fa-solid ${meta.icon} ${meta.color} text-sm"></i>
+                    <span class="text-xs font-semibold text-slate-200">${meta.title}</span>
+                </div>
+            </div>
+            <div class="flex items-center gap-1.5">
+                <button onclick="moveWidgetUp(${idx})" ${idx === 0 ? 'disabled class="opacity-30 cursor-not-allowed px-2 py-1 bg-slate-700 text-xs rounded-lg"' : 'class="px-2 py-1 bg-slate-700 hover:bg-sky-600 text-xs text-white rounded-lg transition-all"'} title="Move Up">
+                    <i class="fa-solid fa-arrow-up"></i>
+                </button>
+                <button onclick="moveWidgetDown(${idx})" ${idx === currentWidgetOrder.length - 1 ? 'disabled class="opacity-30 cursor-not-allowed px-2 py-1 bg-slate-700 text-xs rounded-lg"' : 'class="px-2 py-1 bg-slate-700 hover:bg-sky-600 text-xs text-white rounded-lg transition-all"'} title="Move Down">
+                    <i class="fa-solid fa-arrow-down"></i>
+                </button>
+            </div>
+        `;
+        container.appendChild(row);
+    });
+}
+
+function toggleWidgetVisibility(id, isVis) {
+    currentWidgetVisibility[id] = isVis;
+    const elem = document.getElementById(id);
+    if (elem) {
+        elem.style.display = isVis ? '' : 'none';
+    }
+    saveLayout();
+}
+
+function moveWidgetUp(idx) {
+    if (idx <= 0) return;
+    const temp = currentWidgetOrder[idx];
+    currentWidgetOrder[idx] = currentWidgetOrder[idx - 1];
+    currentWidgetOrder[idx - 1] = temp;
+    applyCurrentLayout();
+    renderCustomizerList();
+    saveLayout();
+}
+
+function moveWidgetDown(idx) {
+    if (idx >= currentWidgetOrder.length - 1) return;
+    const temp = currentWidgetOrder[idx];
+    currentWidgetOrder[idx] = currentWidgetOrder[idx + 1];
+    currentWidgetOrder[idx + 1] = temp;
+    applyCurrentLayout();
+    renderCustomizerList();
+    saveLayout();
+}
+
+function applyCurrentLayout() {
+    const grid = document.getElementById('widgetGrid');
+    currentWidgetOrder.forEach(id => {
+        const el = document.getElementById(id);
+        if (el) {
+            grid.appendChild(el);
+            el.style.display = currentWidgetVisibility[id] !== false ? '' : 'none';
+        }
+    });
+}
+
+function saveLayout() {
+    try {
+        localStorage.setItem('avento_widget_order_v3', JSON.stringify(currentWidgetOrder));
+        localStorage.setItem('avento_widget_vis_v3', JSON.stringify(currentWidgetVisibility));
+    } catch(e) {}
+}
+
+function loadSavedLayout() {
+    try {
+        const savedOrder = localStorage.getItem('avento_widget_order_v3');
+        const savedVis = localStorage.getItem('avento_widget_vis_v3');
+        if (savedOrder) {
+            const parsed = JSON.parse(savedOrder);
+            if (Array.isArray(parsed) && parsed.length > 0) {
+                DEFAULT_WIDGET_ORDER.forEach(id => {
+                    if (!parsed.includes(id)) parsed.push(id);
+                });
+                currentWidgetOrder = parsed;
+            }
+        }
+        if (savedVis) {
+            currentWidgetVisibility = JSON.parse(savedVis);
+        }
+    } catch(e) {}
+    applyCurrentLayout();
+}
+
+function resetLayoutToDefault() {
+    currentWidgetOrder = [...DEFAULT_WIDGET_ORDER];
+    DEFAULT_WIDGET_ORDER.forEach(id => currentWidgetVisibility[id] = true);
+    applyCurrentLayout();
+    renderCustomizerList();
+    saveLayout();
+}
+
+// ==========================================
+// 7. FACE TRACKING (tracking.js)
+// ==========================================
+let faceTracker = null;
+let lastDetectedFace = null;
+let persistentFace = null;
+let lastFaceSeenTimestamp = 0;
+let lastFaceTrackRunTime = 0;
+const FACE_PERSISTENCE_MS = 2200; // Keep exclusion mask active for 2.2s after face disappears
+
+function initFaceTracking() {
+    try {
+        faceTracker = new tracking.ObjectTracker('face');
+        faceTracker.setInitialScale(4);
+        faceTracker.setStepSize(2.5);
+        faceTracker.setEdgesDensity(0.1);
+
+        faceTracker.on('track', function(event) {
+            const now = Date.now();
+            const img = document.getElementById('camStream');
+            const faceTarget = document.getElementById('faceTarget');
+
+            if (event.data && event.data.length > 0) {
+                // Find largest face candidate in 160x120 coordinates
+                let face = event.data.reduce((prev, curr) => (prev.width * prev.height > curr.width * curr.height) ? prev : curr);
+                lastFaceSeenTimestamp = now;
+                if (!persistentFace) {
+                    persistentFace = { x: face.x, y: face.y, width: face.width, height: face.height };
+                } else {
+                    persistentFace.x += (face.x - persistentFace.x) * 0.40;
+                    persistentFace.y += (face.y - persistentFace.y) * 0.40;
+                    persistentFace.width += (face.width - persistentFace.width) * 0.40;
+                    persistentFace.height += (face.height - persistentFace.height) * 0.40;
+                }
+                lastDetectedFace = persistentFace;
+                
+                // Servo Pan/Tilt auto-align only if Track button is active
+                // Map 160x120 coordinates to 640x480 expected by robot
+                if (isFaceTracking) {
+                    let cx = persistentFace.x + (persistentFace.width / 2);
+                    let cy = persistentFace.y + (persistentFace.height / 2);
+                    let mapX = Math.round(cx * 4);
+                    let mapY = Math.round(cy * 4);
+                    fetch(`${API_BASE}/track?x=${mapX}&y=${mapY}`).catch(() => {});
+                }
+            } else {
+                // Expire face only after persistence window
+                if (now - lastFaceSeenTimestamp > FACE_PERSISTENCE_MS) {
+                    persistentFace = null;
+                    lastDetectedFace = null;
+                    if (faceTarget) faceTarget.style.display = 'none';
+                }
+            }
+
+            if (persistentFace && isFaceTracking && (typeof isHudEnabled === 'undefined' || isHudEnabled) && img && faceTarget) {
+                const scaleX = img.clientWidth / FRAME_W;
+                const scaleY = img.clientHeight / FRAME_H;
+                faceTarget.style.display = 'block';
+                faceTarget.style.left = (persistentFace.x * scaleX) + 'px';
+                faceTarget.style.top = (persistentFace.y * scaleY) + 'px';
+                faceTarget.style.width = (persistentFace.width * scaleX) + 'px';
+                faceTarget.style.height = (persistentFace.height * scaleY) + 'px';
+            } else if (faceTarget && !isFaceTracking) {
+                faceTarget.style.display = 'none';
+            }
+        });
+    } catch (e) {
+        console.warn("Face tracker init notice:", e);
+    }
+}
+
+function sendServo(p, t) {
+    pan = p; tilt = t;
+    const pv = document.getElementById('panVal');
+    const tv = document.getElementById('tiltVal');
+    if (pv) pv.innerText = p;
+    if (tv) tv.innerText = t;
+    fetch(`${API_BASE}/servo?pan=${p}&tilt=${t}`);
+}
+
+// ==========================================
+// 8. DEDICATED ROBUST FINGER COUNT GESTURE RECOGNITION MODULE
+// ==========================================
+const FRAME_W = 160;
+const FRAME_H = 120;
+const TOTAL_PIXELS = FRAME_W * FRAME_H;
+
+// Preallocated buffers to prevent GC pauses
+const compLabels = new Int16Array(TOTAL_PIXELS);
+const bfsQueue = new Int32Array(TOTAL_PIXELS);
+const skinMaskBuf = new Uint8Array(TOTAL_PIXELS);
+const handMaskBuf = new Uint8Array(TOTAL_PIXELS);
+
+let fingerCanvas = document.createElement('canvas');
+fingerCanvas.width = FRAME_W;
+fingerCanvas.height = FRAME_H;
+let fingerCtx = fingerCanvas.getContext('2d', { willReadFrequently: true });
+
+// Dedicated 320x240 canvas for MediaPipe Hands AI
+let mpCanvas = document.createElement('canvas');
+mpCanvas.width = 320;
+mpCanvas.height = 240;
+let mpCtx = mpCanvas.getContext('2d', { willReadFrequently: true });
+
+// MediaPipe Deep Learning State
+let mpHands = null;
+let isMediaPipeReady = false;
+let isMediaPipeProcessing = false;
+let lastMediaPipeDetectTime = 0;
+
+// Gesture Engine State
+let isFingerGestureActive = true;
+let candidateFingerCount = 0;
+let candidateStartTime = 0;
+let lastTriggeredGesture = 0;        // 0 = none, 1 = Time, 2 = Weather (prevents duplicate executions)
+let lastGestureTriggerTime = 0;      // Timestamp of last execution
+let neutralPoseStartTime = 0;        // Tracks duration of neutral hand/absence
+const GESTURE_CONFIRM_MS = 380;      // Hold steady for 380ms to confirm intent
+const NEUTRAL_RESET_MS = 350;        // Must lower hand / 0 fingers for 350ms to allow re-triggering the same gesture
+let lastHandCentroid = { x: 0, y: 0 };
+let currentDetectedFingers = 0;
+let isCanvasTainted = false;
+let captureImg = new Image();
+let isCaptureFetching = false;
+
+// 60FPS High-Tech HUD Animation State
+let targetHudState = {
+    active: false,
+    isMediaPipe: false,
+    detectedCount: 0,
+    mpLandmarks: null,
+    label: null,
+    minX: 0, maxX: 0, minY: 0, maxY: 0,
+    palmX: 80, palmY: 80, palmR: 12,
+    wristX: 80, wristY: 119,
+    fingers: [],
+    valley: null,
+    faceExclusion: null
+};
+
+let hudAnimState = {
+    alpha: 0,
+    boxX: 0, boxY: 0, boxW: 0, boxH: 0,
+    palmX: 80, palmY: 80, palmR: 12,
+    wristX: 80, wristY: 119,
+    fingers: [],
+    detectedCount: 0,
+    burstRadius: 0,
+    burstAlpha: 0,
+    burstColor: '#38bdf8'
+};
+
+function triggerHudBurst(x, y, color) {
+    hudAnimState.burstRadius = 6;
+    hudAnimState.burstAlpha = 1.0;
+    hudAnimState.burstColor = color;
+}
+
+function showGestureBadge(msg, isSuccess = false) {
+    const badge = document.getElementById('gestureBadge');
+    if (!badge) return;
+    badge.innerHTML = msg;
+    badge.classList.remove('hidden');
+    if (isSuccess) {
+        badge.className = "absolute bottom-2 left-2 bg-emerald-950/95 text-emerald-300 border border-emerald-400/80 shadow-[0_0_15px_#10b981] px-3 py-1.5 rounded-xl text-xs font-bold transition-all z-20 flex items-center gap-1.5";
+    } else {
+        badge.className = "absolute bottom-2 left-2 bg-slate-900/95 text-amber-300 border border-amber-400/50 shadow-[0_0_10px_#f59e0b] px-2.5 py-1 rounded text-xs transition-all z-20 flex items-center gap-1.5";
+    }
+    clearTimeout(badge._timer);
+    badge._timer = setTimeout(() => badge.classList.add('hidden'), isSuccess ? 5000 : 2500);
+}
+
+// -------------------------------------------------------------
+// UNIFIED GESTURE DEBOUNCE, COOLDOWN & IMMEDIATE SWITCH ENGINE
+// -------------------------------------------------------------
+function handleGestureDetection(count, palmX, palmY, now) {
+    // 1. NEUTRAL STATE (0 fingers, fist, or hand lowered/absent)
+    if (count !== 1 && count !== 2) {
+        candidateFingerCount = 0;
+        candidateStartTime = 0;
+        if (neutralPoseStartTime === 0) {
+            neutralPoseStartTime = now;
+        } else if (now - neutralPoseStartTime >= NEUTRAL_RESET_MS) {
+            // Re-arm state machine: user has cleared their hand, allowing the same gesture again
+            lastTriggeredGesture = 0;
+        }
+        return;
+    }
+
+    // 2. ACTIVE GESTURE (1 or 2 fingers detected)
+    neutralPoseStartTime = 0; // Hand is actively presenting a gesture
+
+    // Check if this same gesture was ALREADY executed on this continuous presentation
+    if (lastTriggeredGesture === count) {
+        // Enforce EXACTLY ONCE: Prevent repetitive executions while the user holds the same gesture
+        candidateFingerCount = 0;
+        candidateStartTime = 0;
+        return;
+    }
+
+    // 3. NEW OR SWITCHED GESTURE (e.g., 0 -> 1, 0 -> 2, 1 -> 2, or 2 -> 1)
+    // Immediately initiates candidate verification for the new gesture
+    if (candidateFingerCount !== count) {
+        candidateFingerCount = count;
+        candidateStartTime = now;
+        const name = count === 1 ? '☝️ 1 Finger: Time' : '✌️ 2 Fingers: Weather';
+        showGestureBadge(`Hold steady for ${name}...`);
+    } else {
+        const holdElapsed = now - candidateStartTime;
+        if (holdElapsed >= GESTURE_CONFIRM_MS) {
+            // Confirm and execute the new gesture EXACTLY ONCE
+            lastTriggeredGesture = count;
+            lastGestureTriggerTime = now;
+            candidateStartTime = 0;
+            candidateFingerCount = 0;
+
+            // Visual shockwave ripple on HUD
+            triggerHudBurst(palmX, palmY, count === 1 ? '#38bdf8' : '#10b981');
+
+            if (count === 1) {
+                onOneFingerGesture();
+            } else if (count === 2) {
+                onTwoFingerGesture();
+            }
+        }
+    }
+}
+
+// -------------------------------------------------------------
+// MEDIAPIPE DEEP LEARNING GESTURE ENGINE (21 3D LANDMARKS)
+// -------------------------------------------------------------
+function initMediaPipe() {
+    try {
+        if (typeof Hands === 'undefined') {
+            console.warn("[MediaPipe] Hands library loading, retrying in 400ms...");
+            setTimeout(initMediaPipe, 400);
+            return;
+        }
+        mpHands = new Hands({
+            locateFile: (file) => `https://cdn.jsdelivr.net/npm/@mediapipe/hands/${file}`
+        });
+        mpHands.setOptions({
+            maxNumHands: 1,
+            modelComplexity: 1,
+            minDetectionConfidence: 0.50,
+            minTrackingConfidence: 0.50
+        });
+        mpHands.onResults(onMediaPipeResults);
+        isMediaPipeReady = true;
+        console.log("✅ [MediaPipe] 21-Landmark Hands AI Engine initialized successfully!");
+        const badge = document.getElementById('engineStatusBadge');
+        if (badge) {
+            badge.innerText = "MediaPipe AI";
+            badge.className = "text-[10px] bg-emerald-950/80 text-emerald-300 border border-emerald-500/40 px-2 py-0.5 rounded font-mono";
+        }
+    } catch (e) {
+        console.error("MediaPipe initialization error:", e);
+        const badge = document.getElementById('engineStatusBadge');
+        if (badge) {
+            badge.innerText = "Fallback Engine";
+            badge.className = "text-[10px] bg-amber-950/80 text-amber-300 border border-amber-500/40 px-2 py-0.5 rounded font-mono";
+        }
+    }
+}
+
+function classifyMediaPipeFingers(landmarks) {
+    const wrist = landmarks[0];
+    const indexMcp = landmarks[5];
+    const middleMcp = landmarks[9];
+    const ringMcp = landmarks[13];
+    const pinkyMcp = landmarks[17];
+
+    function dist(p1, p2) {
+        return Math.hypot(p1.x - p2.x, p1.y - p2.y);
+    }
+
+    const palmCenter = {
+        x: (wrist.x + indexMcp.x + middleMcp.x + pinkyMcp.x) / 4,
+        y: (wrist.y + indexMcp.y + middleMcp.y + pinkyMcp.y) / 4
+    };
+
+    const palmScale = dist(wrist, middleMcp) || 0.15;
+
+    // Helper: test if digit is extended
+    function isDigitExtended(tipIdx, pipIdx, mcpIdx) {
+        const tip = landmarks[tipIdx];
+        const pip = landmarks[pipIdx];
+        const mcp = landmarks[mcpIdx];
+
+        const dTipWrist = dist(tip, wrist);
+        const dPipWrist = dist(pip, wrist);
+        const dTipPalm = dist(tip, palmCenter);
+        const dPipPalm = dist(pip, palmCenter);
+        const dTipMcp = dist(tip, mcp);
+        const dPipMcp = dist(pip, mcp);
+
+        // Tip must be higher than PIP (upward pointing), and farther than PIP from wrist/palm/MCP
+        const isUpward = (tip.y < pip.y - 0.015);
+        const isFarther = (dTipWrist > dPipWrist * 1.08) && (dTipPalm > dPipPalm * 1.10) && (dTipMcp > dPipMcp * 1.05);
+
+        return isUpward && isFarther;
+    }
+
+    // Thumb check:
+    const thumbTip = landmarks[4];
+    const thumbIp = landmarks[3];
+    const dThumbPinky = dist(thumbTip, pinkyMcp);
+    const dThumbIpPinky = dist(thumbIp, pinkyMcp);
+    const dThumbIndex = dist(thumbTip, indexMcp);
+    const thumbExtended = (dThumbPinky > dThumbIpPinky * 1.25) && (dThumbIndex > palmScale * 0.70);
+
+    const indexExtended = isDigitExtended(8, 6, 5);
+    const middleExtended = isDigitExtended(12, 10, 9);
+    const ringExtended = isDigitExtended(16, 14, 13);
+    const pinkyExtended = isDigitExtended(20, 18, 17);
+
+    // EXACT GESTURE 1: ☝️ Index Finger (Time)
+    if (indexExtended && !middleExtended && !ringExtended && !pinkyExtended) {
+        if (!thumbExtended || thumbTip.y > indexMcp.y) {
+            return {
+                count: 1,
+                label: "☝️ 1 FINGER (TIME)",
+                activeLandmarks: [landmarks[8]],
+                palmCenter: palmCenter,
+                palmScale: palmScale
+            };
+        }
+    }
+
+    // EXACT GESTURE 2: ✌️ Index + Middle (Weather / Peace sign)
+    if (indexExtended && middleExtended && !ringExtended && !pinkyExtended) {
+        const tipSep = dist(landmarks[8], landmarks[12]);
+        if (tipSep >= palmScale * 0.20) {
+            return {
+                count: 2,
+                label: "✌️ 2 FINGERS (WEATHER)",
+                activeLandmarks: [landmarks[8], landmarks[12]],
+                palmCenter: palmCenter,
+                palmScale: palmScale
+            };
+        }
+    }
+
+    let extCount = 0;
+    if (thumbExtended) extCount++;
+    if (indexExtended) extCount++;
+    if (middleExtended) extCount++;
+    if (ringExtended) extCount++;
+    if (pinkyExtended) extCount++;
+
+    return {
+        count: 0,
+        label: extCount > 0 ? `HAND (${extCount} EXTENDED)` : "HAND DETECTED",
+        activeLandmarks: [],
+        palmCenter: palmCenter,
+        palmScale: palmScale
+    };
+}
+
+let smoothedLandmarks = null;
+function applyLandmarkSmoothing(rawLms) {
+    if (!smoothedLandmarks || smoothedLandmarks.length !== rawLms.length) {
+        smoothedLandmarks = rawLms.map(p => ({ x: p.x, y: p.y, z: p.z }));
+        return smoothedLandmarks;
+    }
+    const alpha = 0.65;
+    for (let i = 0; i < rawLms.length; i++) {
+        smoothedLandmarks[i].x += (rawLms[i].x - smoothedLandmarks[i].x) * alpha;
+        smoothedLandmarks[i].y += (rawLms[i].y - smoothedLandmarks[i].y) * alpha;
+        smoothedLandmarks[i].z += (rawLms[i].z - smoothedLandmarks[i].z) * alpha;
+    }
+    return smoothedLandmarks;
+}
+
+function onMediaPipeResults(results) {
+    const now = Date.now();
+
+    if (!results.multiHandLandmarks || results.multiHandLandmarks.length === 0) {
+        smoothedLandmarks = null;
+        if (targetHudState.isMediaPipe) {
+            targetHudState.active = false;
+            targetHudState.mpLandmarks = null;
+            targetHudState.detectedCount = 0;
+            resetFingerHoldState();
+        }
+        handleGestureDetection(0, 0, 0, now);
+        return;
+    }
+
+    lastMediaPipeDetectTime = now;
+    const rawLandmarks = results.multiHandLandmarks[0];
+    const landmarks = applyLandmarkSmoothing(rawLandmarks);
+    const classified = classifyMediaPipeFingers(landmarks);
+    const count = classified.count;
+
+    currentDetectedFingers = count;
+
+    const wrist = landmarks[0];
+    const palm = classified.palmCenter;
+
+    targetHudState = {
+        active: true,
+        isMediaPipe: true,
+        detectedCount: count,
+        mpLandmarks: landmarks,
+        label: classified.label,
+        activeTips: classified.activeLandmarks,
+        palmX: palm.x * FRAME_W,
+        palmY: palm.y * FRAME_H,
+        palmR: classified.palmScale * FRAME_W * 0.45,
+        wristX: wrist.x * FRAME_W,
+        wristY: wrist.y * FRAME_H,
+        fingers: classified.activeLandmarks.map(f => ({ x: f.x * FRAME_W, y: f.y * FRAME_H })),
+        faceExclusion: null
+    };
+
+    handleGestureDetection(count, palm.x * FRAME_W, palm.y * FRAME_H, now);
+}
+
+function initFingerGestureRecognition() {
+    const img = document.getElementById('camStream');
+    const overlay = document.getElementById('canvasOverlay');
+
+    // Initialize Google MediaPipe Hands
+    initMediaPipe();
+
+    // Start 60fps buttery smooth HUD rendering loop
+    startSmoothHudLoop();
+
+    setInterval(() => {
+        if (!isFingerGestureActive) return;
+
+        // Mode A: Direct draw from live MJPEG stream
+        if (!isCanvasTainted) {
+            if (!img.complete || img.naturalWidth === 0) return;
+            try {
+                if (isMediaPipeReady && mpHands && !isMediaPipeProcessing) {
+                    mpCtx.drawImage(img, 0, 0, 320, 240);
+                    isMediaPipeProcessing = true;
+                    mpHands.send({ image: mpCanvas }).then(() => {
+                        isMediaPipeProcessing = false;
+                    }).catch(err => {
+                        console.warn("[MediaPipe] send error:", err);
+                        isMediaPipeProcessing = false;
+                    });
+                } else if (!isMediaPipeReady) {
+                    fingerCtx.drawImage(img, 0, 0, FRAME_W, FRAME_H);
+                    const imgData = fingerCtx.getImageData(0, 0, FRAME_W, FRAME_H);
+                    processFingerFrame(imgData, img);
+                }
+            } catch (e) {
+                if (e.name === 'SecurityError') {
+                    console.warn("Direct stream canvas access restricted by browser CORS, switching to /capture pipeline:", e);
+                    isCanvasTainted = true;
+                }
+            }
+        } 
+        // Mode B: Resilient single-frame fetch from Port 80 /capture (Strictly Same-Origin)
+        else {
+            if (isCaptureFetching) return;
+            isCaptureFetching = true;
+            captureImg.crossOrigin = "anonymous";
+            captureImg.onload = () => {
+                try {
+                    if (isMediaPipeReady && mpHands && !isMediaPipeProcessing) {
+                        mpCtx.drawImage(captureImg, 0, 0, 320, 240);
+                        isMediaPipeProcessing = true;
+                        mpHands.send({ image: mpCanvas }).then(() => {
+                            isMediaPipeProcessing = false;
+                        }).catch(err => {
+                            console.warn("[MediaPipe] capture send error:", err);
+                            isMediaPipeProcessing = false;
+                        });
+                    } else if (!isMediaPipeReady) {
+                        fingerCtx.drawImage(captureImg, 0, 0, FRAME_W, FRAME_H);
+                        const imgData = fingerCtx.getImageData(0, 0, FRAME_W, FRAME_H);
+                        processFingerFrame(imgData, img);
+                    }
+                } catch (err) {
+                    console.error("Capture processing error:", err);
+                } finally {
+                    isCaptureFetching = false;
+                }
+            };
+            captureImg.onerror = () => {
+                isCaptureFetching = false;
+            };
+            captureImg.src = API_BASE + "/capture?t=" + Date.now();
+        }
+    }, 35);
+}
+
+function processFingerFrame(imgData, img) {
+    const data = imgData.data;
+    const W = FRAME_W, H = FRAME_H;
+    const now = Date.now();
+
+    // If MediaPipe is actively tracking, let MediaPipe take priority
+    if (targetHudState.isMediaPipe && (now - lastMediaPipeDetectTime < 600)) {
+        return;
+    }
+
+    // -------------------------------------------------------------
+    // 0. PERIODIC FACE TRACKING (Direct on 160x120 canvas pixels)
+    // -------------------------------------------------------------
+    if (faceTracker && (now - lastFaceTrackRunTime > 180)) {
+        lastFaceTrackRunTime = now;
+        try {
+            faceTracker.track(data, W, H);
+        } catch (e) {
+            // Silently recover if frame was changing
+        }
+    }
+
+    // -------------------------------------------------------------
+    // 1. DYNAMIC FACE & WIDE TORSO EXCLUSION SHIELD
+    // -------------------------------------------------------------
+    let faceMask = null;
+    const activeFace = (persistentFace && (now - lastFaceSeenTimestamp < FACE_PERSISTENCE_MS)) ? persistentFace : lastDetectedFace;
+    if (activeFace) {
+        // activeFace is directly in 160x120 coordinates
+        const fx = Math.round(activeFace.x);
+        const fy = Math.round(activeFace.y);
+        const fw = Math.round(activeFace.width);
+        const fh = Math.round(activeFace.height);
+
+        // Generous Head Zone (covers forehead, hair fringe, jaw, ears)
+        const headX = Math.max(0, Math.floor(fx - fw * 0.25));
+        const headY = Math.max(0, Math.floor(fy - fh * 0.35));
+        const headW = Math.min(W - headX, Math.floor(fw * 1.50));
+        const headH = Math.min(H - headY, Math.floor(fh * 1.60));
+
+        // Broad Torso/Body Corridor (from chin level down to bottom of image)
+        const torsoCenter = fx + fw / 2;
+        const torsoHalfW = Math.floor(fw * 1.45); // 2.9x face width covers neck, collar & shoulders
+        const torsoX = Math.max(0, Math.floor(torsoCenter - torsoHalfW));
+        const torsoW = Math.min(W - torsoX, torsoHalfW * 2);
+        const torsoY = Math.max(0, Math.floor(fy + fh * 0.80));
+
+        faceMask = {
+            headX, headY, headW, headH,
+            torsoX, torsoY, torsoW,
+            displayBox: { x: headX, y: headY, w: headW, h: headH },
+            torsoBox: { x: torsoX, y: torsoY, w: torsoW, h: H - torsoY }
+        };
+    }
+
+    // -------------------------------------------------------------
+    // 2. SKIN CHROMINANCE SEGMENTATION (RGB + YCbCr)
+    // -------------------------------------------------------------
+    skinMaskBuf.fill(0);
+    let skinCount = 0;
+
+    for (let y = 0; y < H; y++) {
+        for (let x = 0; x < W; x++) {
+            // Apply Face & Upper Body Shield
+            if (faceMask) {
+                if (x >= faceMask.headX && x < faceMask.headX + faceMask.headW &&
+                    y >= faceMask.headY && y < faceMask.headY + faceMask.headH) {
+                    continue; // Exclude head
+                }
+                if (x >= faceMask.torsoX && x < faceMask.torsoX + faceMask.torsoW &&
+                    y >= faceMask.torsoY) {
+                    continue; // Exclude neck & torso corridor
+                }
+            }
+
+            const idx = (y * W + x) * 4;
+            const r = data[idx];
+            const g = data[idx + 1];
+            const b = data[idx + 2];
+
+            const cr = 128 + 0.5 * r - 0.4187 * g - 0.0813 * b;
+            const cb = 128 - 0.1687 * r - 0.3313 * g + 0.5 * b;
+            const isRgb = (r > 26 && g > 24 && b > 12 && (r >= b + 4) && (g >= b + 2) && Math.abs(r - g) <= 38 && (r + g + b < 660));
+            const isYcbcr = (cr >= 120 && cr <= 182 && cb >= 68 && cb <= 140);
+
+            if (isRgb || isYcbcr) {
+                skinMaskBuf[y * W + x] = 1;
+                skinCount++;
+            }
+        }
+    }
+
+    const skinRatio = skinCount / TOTAL_PIXELS;
+    if (skinRatio < 0.008 || skinRatio > 0.38) {
+        resetFingerHoldState();
+        targetHudState.active = false;
+        targetHudState.faceExclusion = faceMask ? { head: faceMask.displayBox, torso: faceMask.torsoBox } : null;
+        return;
+    }
+
+    // -------------------------------------------------------------
+    // 3. CONNECTED COMPONENT ANALYSIS (CCA) & WRIST ANCHOR ISOLATION
+    // -------------------------------------------------------------
+    compLabels.fill(0);
+    let components = [];
+    let currentLabel = 0;
+
+    for (let y = 0; y < H; y++) {
+        for (let x = 0; x < W; x++) {
+            const idx = y * W + x;
+            if (skinMaskBuf[idx] === 1 && compLabels[idx] === 0) {
+                currentLabel++;
+                let head = 0, tail = 0;
+                bfsQueue[tail++] = idx;
+                compLabels[idx] = currentLabel;
+                
+                let count = 0;
+                let cMinX = x, cMaxX = x, cMinY = y, cMaxY = y;
+                let wristPt = { x: x, y: y };
+
+                while (head < tail) {
+                    const curr = bfsQueue[head++];
+                    count++;
+                    const cy = Math.floor(curr / W);
+                    const cx = curr % W;
+
+                    if (cx < cMinX) cMinX = cx;
+                    if (cx > cMaxX) cMaxX = cx;
+                    if (cy < cMinY) cMinY = cy;
+                    if (cy > cMaxY) cMaxY = cy;
+
+                    if (cy > wristPt.y) wristPt = { x: cx, y: cy };
+
+                    // 4-connected neighbors
+                    const nbrs = [curr - 1, curr + 1, curr - W, curr + W];
+                    for (let k = 0; k < 4; k++) {
+                        const nIdx = nbrs[k];
+                        if (nIdx >= 0 && nIdx < TOTAL_PIXELS) {
+                            const nx = nIdx % W;
+                            if (Math.abs(nx - cx) <= 1 && skinMaskBuf[nIdx] === 1 && compLabels[nIdx] === 0) {
+                                compLabels[nIdx] = currentLabel;
+                                bfsQueue[tail++] = nIdx;
+                            }
+                        }
+                    }
+                }
+
+                // Component size bounds: must have reasonable pixel mass and either reach lower frame or span vertically
+                const spansVertical = (cMaxY - cMinY >= 26);
+                const isLowerHalf = (cMaxY >= Math.floor(H * 0.48));
+                if (count >= 160 && count <= 4500 && (spansVertical || isLowerHalf)) {
+                    components.push({
+                        label: currentLabel,
+                        count: count,
+                        minX: cMinX, maxX: cMaxX,
+                        minY: cMinY, maxY: cMaxY,
+                        wristAnchorPoint: wristPt
+                    });
+                }
+            }
+        }
+    }
+
+    if (components.length === 0) {
+        resetFingerHoldState();
+        targetHudState.active = false;
+        targetHudState.faceExclusion = faceMask ? { head: faceMask.displayBox, torso: faceMask.torsoBox } : null;
+        return;
+    }
+
+    // Sort candidates by size descending and evaluate top 3 candidates to find a valid hand
+    components.sort((a, b) => b.count - a.count);
+
+    let chosenHand = null;
+    let chosenHandComp = null;
+
+    for (let c = 0; c < Math.min(3, components.length); c++) {
+        const cand = components[c];
+        handMaskBuf.fill(0);
+        for (let i = 0; i < TOTAL_PIXELS; i++) {
+            if (compLabels[i] === cand.label) handMaskBuf[i] = 1;
+        }
+
+        // Distance transform
+        let maxDist = 0;
+        let pX = Math.round((cand.minX + cand.maxX) / 2);
+        let pY = Math.round((cand.minY + cand.maxY) / 2);
+
+        const step = 2;
+        for (let y = cand.minY + 4; y <= cand.maxY - 4; y += step) {
+            for (let x = cand.minX + 4; x <= cand.maxX - 4; x += step) {
+                if (handMaskBuf[y * W + x] !== 1) continue;
+                let dMin = 30;
+                const dirs = [[0,1], [0,-1], [1,0], [-1,0], [1,1], [-1,-1], [1,-1], [-1,1]];
+                for (let i = 0; i < 8; i++) {
+                    const dx = dirs[i][0], dy = dirs[i][1];
+                    let d = 1;
+                    while (d < dMin) {
+                        const nx = x + dx * d, ny = y + dy * d;
+                        if (nx < 0 || nx >= W || ny < 0 || ny >= H || handMaskBuf[ny * W + nx] === 0) {
+                            dMin = d;
+                            break;
+                        }
+                        d++;
+                    }
+                }
+                if (dMin > maxDist) {
+                    maxDist = dMin;
+                    pX = x;
+                    pY = y;
+                }
+            }
+        }
+
+        const pR = Math.max(7, Math.min(25, maxDist));
+        if (pR < 7 || pR > 25) continue;
+
+        // Solid core check
+        let solidHits = 0;
+        for (let a = 0; a < 12; a++) {
+            const rad = (a * Math.PI) / 6;
+            const px = Math.round(pX + Math.cos(rad) * (pR * 0.70));
+            const py = Math.round(pY + Math.sin(rad) * (pR * 0.70));
+            if (px >= 0 && px < W && py >= 0 && py < H && handMaskBuf[py * W + px] === 1) {
+                solidHits++;
+            }
+        }
+        if (solidHits >= 8) { // >= 66% solid
+            chosenHand = {
+                palmX: pX, palmY: pY, palmR: pR,
+                minX: cand.minX, maxX: cand.maxX,
+                minY: cand.minY, maxY: cand.maxY,
+                wrist: cand.wristAnchorPoint
+            };
+            chosenHandComp = cand;
+            break;
+        }
+    }
+
+    if (!chosenHand) {
+        resetFingerHoldState();
+        targetHudState.active = false;
+        targetHudState.faceExclusion = faceMask ? { head: faceMask.displayBox, torso: faceMask.torsoBox } : null;
+        return;
+    }
+
+    // Ensure handMaskBuf has chosen component
+    handMaskBuf.fill(0);
+    for (let i = 0; i < TOTAL_PIXELS; i++) {
+        if (compLabels[i] === chosenHandComp.label) handMaskBuf[i] = 1;
+    }
+
+    const { palmX, palmY, palmR, minX, maxX, minY, maxY } = chosenHand;
+    const wristAnchorPoint = chosenHand.wrist;
+
+    // Centroid Velocity Check: Prevent false triggers during rapid swinging/waving
+    const jitterDist = Math.hypot(palmX - lastHandCentroid.x, palmY - lastHandCentroid.y);
+    lastHandCentroid = { x: palmX, y: palmY };
+    if (jitterDist > 14) {
+        resetFingerHoldState();
+    }
+
+    // -------------------------------------------------------------
+    // 5. DIGIT LANDMARK EXTRACTION & SLENDER BIOMETRICS
+    // -------------------------------------------------------------
+    let rawPeaks = [];
+    for (let x = minX + 2; x <= maxX - 2; x += 2) {
+        let topY = -1;
+        for (let y = minY; y <= palmY; y++) {
+            if (handMaskBuf[y * W + x] === 1) {
+                topY = y;
+                break;
+            }
+        }
+        if (topY !== -1) {
+            const dist = Math.hypot(x - palmX, topY - palmY);
+            if (dist > palmR * 1.25 && topY < palmY - palmR * 0.45) {
+                rawPeaks.push({ x: x, y: topY, dist: dist });
+            }
+        }
+    }
+
+    let candidateTips = [];
+    for (let i = 0; i < rawPeaks.length; i++) {
+        const p = rawPeaks[i];
+        let isMax = true;
+        for (let j = 0; j < rawPeaks.length; j++) {
+            if (i !== j && Math.abs(rawPeaks[j].x - p.x) <= 8 && (rawPeaks[j].dist > p.dist)) {
+                isMax = false;
+                break;
+            }
+        }
+        if (isMax) {
+            if (!candidateTips.some(t => Math.abs(t.x - p.x) < 11)) {
+                candidateTips.push(p);
+            }
+        }
+    }
+
+    let validFingers = [];
+    for (let tip of candidateTips) {
+        const vx = tip.x - palmX;
+        const vy = tip.y - palmY;
+        const normLen = Math.hypot(vx, vy);
+        const len = normLen - palmR;
+
+        // Length bounds
+        if (len < 10 || len > 55) continue;
+
+        // Upward orientation: Vector must point upward (within +-45 deg of vertical)
+        if (vy >= -5 || Math.abs(vx / vy) > 0.95) continue;
+
+        const nx = -vy / normLen;
+        const ny = vx / normLen;
+
+        const midX = Math.round(tip.x - (vx / normLen) * (len * 0.45));
+        const midY = Math.round(tip.y - (vy / normLen) * (len * 0.45));
+
+        // Measure cylinder thickness perpendicular to digit axis
+        let wPos = 0, wNeg = 0;
+        for (let s = 1; s <= 15; s++) {
+            const sx = Math.round(midX + nx * s);
+            const sy = Math.round(midY + ny * s);
+            if (sx >= 0 && sx < W && sy >= 0 && sy < H && handMaskBuf[sy * W + sx] === 1) {
+                wPos = s;
+            } else break;
+        }
+        for (let s = 1; s <= 15; s++) {
+            const sx = Math.round(midX - nx * s);
+            const sy = Math.round(midY - ny * s);
+            if (sx >= 0 && sx < W && sy >= 0 && sy < H && handMaskBuf[sy * W + sx] === 1) {
+                wNeg = s;
+            } else break;
+        }
+        const fingerWidth = wPos + wNeg;
+
+        // Slender cylinder biometric test
+        if (fingerWidth >= 3 && fingerWidth <= 18 && (len / fingerWidth >= 1.25)) {
+            validFingers.push({
+                x: tip.x,
+                y: tip.y,
+                len: len,
+                width: fingerWidth,
+                baseX: Math.round(palmX + (vx / normLen) * palmR),
+                baseY: Math.round(palmY + (vy / normLen) * palmR)
+            });
+        }
+    }
+
+    validFingers.sort((a, b) => a.x - b.x);
+
+    // -------------------------------------------------------------
+    // 6. STRICT GESTURE CLASSIFICATION (1 vs 2 FINGERS)
+    // -------------------------------------------------------------
+    let detectedCount = 0;
+    let valleyLandmark = null;
+
+    // Count truly extended finger candidates (protruding >= 1.55 * palmR into upper region)
+    const longExtendedDigits = candidateTips.filter(p => p.dist > palmR * 1.55 && p.y < palmY - palmR * 0.4);
+
+    // Rejection rule: 3 or more extended fingers exist (open palm, 3 fingers, 4 fingers)
+    if (validFingers.length >= 3 || longExtendedDigits.length >= 3) {
+        detectedCount = 0;
+    }
+    // A. TEST FOR 2 FINGERS (✌️ Peace Sign / V)
+    else if (validFingers.length === 2 && longExtendedDigits.length <= 2) {
+        const f1 = validFingers[0];
+        const f2 = validFingers[1];
+        const tipDist = Math.hypot(f1.x - f2.x, f1.y - f2.y);
+        const xDiff = Math.abs(f1.x - f2.x);
+        const yDiff = Math.abs(f1.y - f2.y);
+
+        if (xDiff >= 7 && tipDist >= palmR * 0.70 && tipDist <= palmR * 3.4 && yDiff <= palmR * 1.4) {
+            let lowestTopY = 0;
+            let valleyX = Math.round((f1.x + f2.x) / 2);
+            let hasSkinGap = false;
+
+            for (let x = f1.x + 2; x <= f2.x - 2; x++) {
+                let foundSkin = false;
+                for (let y = minY; y <= palmY; y++) {
+                    if (handMaskBuf[y * W + x] === 1) {
+                        foundSkin = true;
+                        if (y > lowestTopY) {
+                            lowestTopY = y;
+                            valleyX = x;
+                        }
+                        break;
+                    }
+                }
+                if (!foundSkin) hasSkinGap = true;
+            }
+
+            const valleyDepth = lowestTopY - Math.max(f1.y, f2.y);
+            // Require verified interdigital notch/valley
+            if (hasSkinGap || valleyDepth >= 5) {
+                detectedCount = 2;
+                valleyLandmark = { x: valleyX, y: lowestTopY > 0 ? lowestTopY : Math.round((f1.y + f2.y) / 2 + 8) };
+            }
+        }
+    }
+    // B. TEST FOR 1 FINGER (☝️ Index Finger)
+    else if (validFingers.length === 1) {
+        const f = validFingers[0];
+        const vx = f.x - palmX;
+        const vy = f.y - palmY;
+
+        // Strict index finger checks:
+        // 1. Points strictly upward (within +-37 deg of vertical)
+        const isUpward = (vy < -7 && Math.abs(vx / vy) <= 0.75);
+        // 2. Length must be substantial
+        const isLongEnough = (f.len >= 11 && f.len >= palmR * 0.80);
+        // 3. ZERO secondary extended fingers protruding into upper zone
+        let hasAnotherExtendedFinger = false;
+        for (let p of candidateTips) {
+            const d = Math.hypot(p.x - f.x, p.y - f.y);
+            if (d > 12 && (palmY - p.y) >= (palmY - f.y) * 0.65 && p.y < palmY - palmR * 1.1) {
+                hasAnotherExtendedFinger = true;
+                break;
+            }
+        }
+
+        if (isUpward && isLongEnough && !hasAnotherExtendedFinger) {
+            detectedCount = 1;
+        }
+    }
+
+    currentDetectedFingers = detectedCount;
+
+    // Update target HUD state for 60fps smooth animation loop
+    targetHudState = {
+        active: (detectedCount === 1 || detectedCount === 2 || validFingers.length > 0),
+        isMediaPipe: false,
+        mpLandmarks: null,
+        detectedCount: detectedCount,
+        minX: minX, maxX: maxX, minY: minY, maxY: maxY,
+        palmX: palmX, palmY: palmY, palmR: palmR,
+        wristX: wristAnchorPoint.x, wristY: wristAnchorPoint.y,
+        fingers: validFingers.map(f => ({ x: f.x, y: f.y, bx: f.baseX, by: f.baseY })),
+        valley: valleyLandmark,
+        faceExclusion: faceMask ? { head: faceMask.displayBox, torso: faceMask.torsoBox } : null
+    };
+
+    // Unified Robust Debounce, Cooldown & Immediate Switch Engine
+    handleGestureDetection(detectedCount, palmX, palmY, now);
+}
+
+// -------------------------------------------------------------
+// 8. 60 FPS HIGH-TECH CYBERPUNK HUD ANIMATION ENGINE
+// -------------------------------------------------------------
+function startSmoothHudLoop() {
+    function renderHud() {
+        requestAnimationFrame(renderHud);
+
+        const overlay = document.getElementById('canvasOverlay');
+        const img = document.getElementById('camStream');
+        if (!overlay || !img) return;
+        const ctx = overlay.getContext('2d');
+        if (!ctx) return;
+
+        if (overlay.width !== img.clientWidth || overlay.height !== img.clientHeight) {
+            overlay.width = img.clientWidth;
+            overlay.height = img.clientHeight;
+        }
+
+        const W = FRAME_W, H = FRAME_H;
+        const sX = overlay.width / W;
+        const sY = overlay.height / H;
+
+        ctx.clearRect(0, 0, overlay.width, overlay.height);
+
+        // 1. Draw Face & Body Shield (if active)
+        if (targetHudState.faceExclusion) {
+            const fb = targetHudState.faceExclusion.head;
+            const tb = targetHudState.faceExclusion.torso;
+            ctx.save();
+            ctx.strokeStyle = 'rgba(239, 68, 68, 0.40)';
+            ctx.lineWidth = 1.5;
+            ctx.setLineDash([5, 4]);
+            if (fb) {
+                ctx.strokeRect(fb.x * sX, fb.y * sY, fb.w * sX, fb.h * sY);
+                ctx.fillStyle = 'rgba(239, 68, 68, 0.05)';
+                ctx.fillRect(fb.x * sX, fb.y * sY, fb.w * sX, fb.h * sY);
+                ctx.font = '9px Orbitron, monospace';
+                ctx.fillStyle = 'rgba(239, 68, 68, 0.85)';
+                ctx.fillText('🛡️ FACE SHIELD', fb.x * sX + 4, fb.y * sY + 12);
+            }
+            if (tb) {
+                ctx.strokeRect(tb.x * sX, tb.y * sY, tb.w * sX, tb.h * sY);
+                ctx.fillStyle = 'rgba(239, 68, 68, 0.03)';
+                ctx.fillRect(tb.x * sX, tb.y * sY, tb.w * sX, tb.h * sY);
+            }
+            ctx.restore();
+        }
+
+        // Smooth Alpha transition
+        if (targetHudState.active && (typeof isHudEnabled === 'undefined' || isHudEnabled)) {
+            hudAnimState.alpha = Math.min(1.0, hudAnimState.alpha + 0.12);
+        } else {
+            hudAnimState.alpha = Math.max(0.0, hudAnimState.alpha - 0.08);
+        }
+
+        if (hudAnimState.alpha <= 0.01) return;
+
+        // --- MEDIAPIPE 21-LANDMARK HIGH-TECH HUD SKELETON ---
+        if (targetHudState.mpLandmarks) {
+            const lms = targetHudState.mpLandmarks;
+            const count = targetHudState.detectedCount;
+            const mainColor = count === 1 ? '#38bdf8' : (count === 2 ? '#10b981' : '#64748b');
+            const glowColor = count === 1 ? 'rgba(56, 189, 248, 0.40)' : (count === 2 ? 'rgba(16, 185, 129, 0.40)' : 'rgba(100, 116, 139, 0.25)');
+
+            const BONES = [
+                [0, 1], [1, 2], [2, 3], [3, 4],
+                [0, 5], [5, 6], [6, 7], [7, 8],
+                [0, 9], [9, 10], [10, 11], [11, 12],
+                [0, 13], [13, 14], [14, 15], [15, 16],
+                [0, 17], [17, 18], [18, 19], [19, 20],
+                [5, 9], [9, 13], [13, 17]
+            ];
+
+            ctx.save();
+            ctx.globalAlpha = hudAnimState.alpha;
+
+            // 1. Draw glowing bones
+            ctx.lineWidth = 2.5;
+            ctx.strokeStyle = mainColor;
+            ctx.shadowColor = mainColor;
+            ctx.shadowBlur = 8;
+            for (let b of BONES) {
+                ctx.beginPath();
+                ctx.moveTo(lms[b[0]].x * overlay.width, lms[b[0]].y * overlay.height);
+                ctx.lineTo(lms[b[1]].x * overlay.width, lms[b[1]].y * overlay.height);
+                ctx.stroke();
+            }
+
+            // 2. Draw joints
+            ctx.shadowBlur = 0;
+            for (let i = 0; i < 21; i++) {
+                const jx = lms[i].x * overlay.width;
+                const jy = lms[i].y * overlay.height;
+                const isTip = (i === 4 || i === 8 || i === 12 || i === 16 || i === 20);
+                ctx.fillStyle = isTip ? mainColor : '#ffffff';
+                ctx.beginPath();
+                ctx.arc(jx, jy, isTip ? 4.5 : 2.5, 0, 2 * Math.PI);
+                ctx.fill();
+            }
+
+            // 3. Highlight Active Fingertips with Pulsing Halos
+            const activeTips = count === 1 ? [8] : (count === 2 ? [8, 12] : []);
+            const nowTime = Date.now();
+            for (let tipIdx of activeTips) {
+                const tx = lms[tipIdx].x * overlay.width;
+                const ty = lms[tipIdx].y * overlay.height;
+                const haloR = 9 + Math.sin(nowTime / 130 + tipIdx) * 3;
+
+                ctx.strokeStyle = mainColor;
+                ctx.lineWidth = 2;
+                ctx.beginPath();
+                ctx.arc(tx, ty, haloR, 0, 2 * Math.PI);
+                ctx.stroke();
+
+                ctx.fillStyle = '#ffffff';
+                ctx.beginPath();
+                ctx.arc(tx, ty, 5.5, 0, 2 * Math.PI);
+                ctx.fill();
+            }
+
+            // 4. Bounding Box & Floating Label
+            let minX = 1, maxX = 0, minY = 1, maxY = 0;
+            for (let lm of lms) {
+                if (lm.x < minX) minX = lm.x;
+                if (lm.x > maxX) maxX = lm.x;
+                if (lm.y < minY) minY = lm.y;
+                if (lm.y > maxY) maxY = lm.y;
+            }
+            const bx = minX * overlay.width - 12;
+            const by = minY * overlay.height - 12;
+            const bw = (maxX - minX) * overlay.width + 24;
+            const bh = (maxY - minY) * overlay.height + 24;
+
+            ctx.strokeStyle = mainColor;
+            ctx.lineWidth = 1.8;
+            const cLen = Math.min(14, bw * 0.25, bh * 0.25);
+            ctx.beginPath(); ctx.moveTo(bx, by + cLen); ctx.lineTo(bx, by); ctx.lineTo(bx + cLen, by); ctx.stroke();
+            ctx.beginPath(); ctx.moveTo(bx + bw - cLen, by); ctx.lineTo(bx + bw, by); ctx.lineTo(bx + bw, by + cLen); ctx.stroke();
+            ctx.beginPath(); ctx.moveTo(bx, by + bh - cLen); ctx.lineTo(bx, by + bh); ctx.lineTo(bx + cLen, by + bh); ctx.stroke();
+            ctx.beginPath(); ctx.moveTo(bx + bw - cLen, by + bh); ctx.lineTo(bx + bw, by + bh); ctx.lineTo(bx + bw, by + bh - cLen); ctx.stroke();
+
+            // Palm Reticle & Circular Progress Arc
+            const px = lms[9].x * overlay.width;
+            const py = lms[9].y * overlay.height;
+            const pr = 16;
+
+            if (count === 1 || count === 2) {
+                const isExecuted = (lastTriggeredGesture === count);
+                const tag = isExecuted ? 
+                    (count === 1 ? '☝️ 1 FINGER: TIME [ON SCREEN]' : '✌️ 2 FINGERS: WEATHER [ON SCREEN]') :
+                    (count === 1 ? '☝️ 1 FINGER: TIME' : '✌️ 2 FINGERS: WEATHER');
+                ctx.font = 'bold 12px Orbitron, sans-serif';
+                ctx.fillStyle = mainColor;
+                ctx.fillText(tag, Math.max(10, bx), Math.max(20, by - 8));
+
+                if (isExecuted) {
+                    ctx.strokeStyle = mainColor;
+                    ctx.lineWidth = 3;
+                    ctx.beginPath();
+                    ctx.arc(px, py, pr + 6, 0, 2 * Math.PI);
+                    ctx.stroke();
+
+                    ctx.font = 'bold 9px Orbitron, sans-serif';
+                    ctx.fillStyle = '#ffffff';
+                    ctx.fillText('ACTIVE', px - 18, py + pr + 18);
+                } else if (candidateFingerCount === count && candidateStartTime > 0) {
+                    const prog = Math.min(1.0, (nowTime - candidateStartTime) / GESTURE_CONFIRM_MS);
+                    ctx.strokeStyle = 'rgba(15, 23, 42, 0.75)';
+                    ctx.lineWidth = 4;
+                    ctx.beginPath();
+                    ctx.arc(px, py, pr + 6, 0, 2 * Math.PI);
+                    ctx.stroke();
+
+                    ctx.strokeStyle = mainColor;
+                    ctx.lineWidth = 4;
+                    ctx.beginPath();
+                    ctx.arc(px, py, pr + 6, -Math.PI / 2, -Math.PI / 2 + prog * 2 * Math.PI);
+                    ctx.stroke();
+
+                    ctx.font = 'bold 10px Orbitron, sans-serif';
+                    ctx.fillStyle = '#ffffff';
+                    ctx.fillText(Math.round(prog * 100) + '%', px - 11, py + pr + 18);
+                }
+            } else {
+                ctx.font = '10px Orbitron, monospace';
+                ctx.fillStyle = 'rgba(148, 163, 184, 0.8)';
+                ctx.fillText(targetHudState.label || '🖐️ HAND DETECTED', Math.max(10, bx), Math.max(20, by - 8));
+            }
+
+            // Ripple Shockwave
+            if (hudAnimState.burstAlpha > 0.02) {
+                ctx.strokeStyle = hudAnimState.burstColor;
+                ctx.lineWidth = 3;
+                ctx.globalAlpha = hudAnimState.burstAlpha;
+                ctx.beginPath();
+                ctx.arc(px, py, hudAnimState.burstRadius, 0, 2 * Math.PI);
+                ctx.stroke();
+                hudAnimState.burstRadius += 3.5;
+                hudAnimState.burstAlpha *= 0.88;
+            }
+
+            ctx.restore();
+            return;
+        }
+
+        // Smooth Lerp for coordinates
+        const lerp = 0.42;
+        hudAnimState.boxX += (targetHudState.minX - hudAnimState.boxX) * lerp;
+        hudAnimState.boxY += (targetHudState.minY - hudAnimState.boxY) * lerp;
+        const tw = targetHudState.maxX - targetHudState.minX;
+        const th = targetHudState.maxY - targetHudState.minY;
+        hudAnimState.boxW += (tw - hudAnimState.boxW) * lerp;
+        hudAnimState.boxH += (th - hudAnimState.boxH) * lerp;
+
+        hudAnimState.palmX += (targetHudState.palmX - hudAnimState.palmX) * lerp;
+        hudAnimState.palmY += (targetHudState.palmY - hudAnimState.palmY) * lerp;
+        hudAnimState.palmR += (targetHudState.palmR - hudAnimState.palmR) * lerp;
+
+        hudAnimState.wristX += (targetHudState.wristX - hudAnimState.wristX) * lerp;
+        hudAnimState.wristY += (targetHudState.wristY - hudAnimState.wristY) * lerp;
+        hudAnimState.detectedCount = targetHudState.detectedCount;
+
+        // Synchronize & smooth Lerp individual fingers
+        while (hudAnimState.fingers.length < targetHudState.fingers.length) {
+            const tf = targetHudState.fingers[hudAnimState.fingers.length];
+            hudAnimState.fingers.push({ x: tf.x, y: tf.y, bx: tf.bx, by: tf.by });
+        }
+        while (hudAnimState.fingers.length > targetHudState.fingers.length) {
+            hudAnimState.fingers.pop();
+        }
+        for (let i = 0; i < targetHudState.fingers.length; i++) {
+            const tf = targetHudState.fingers[i];
+            const hf = hudAnimState.fingers[i];
+            hf.x += (tf.x - hf.x) * lerp;
+            hf.y += (tf.y - hf.y) * lerp;
+            hf.bx += (tf.bx - hf.bx) * lerp;
+            hf.by += (tf.by - hf.by) * lerp;
+        }
+
+        const count = hudAnimState.detectedCount;
+        const mainColor = count === 1 ? '#38bdf8' : (count === 2 ? '#10b981' : '#64748b');
+        const glowColor = count === 1 ? 'rgba(56, 189, 248, 0.35)' : (count === 2 ? 'rgba(16, 185, 129, 0.35)' : 'rgba(100, 116, 139, 0.2)');
+
+        ctx.save();
+        ctx.globalAlpha = hudAnimState.alpha;
+
+        const bx = hudAnimState.boxX * sX;
+        const by = hudAnimState.boxY * sY;
+        const bw = hudAnimState.boxW * sX;
+        const bh = hudAnimState.boxH * sY;
+        const px = hudAnimState.palmX * sX;
+        const py = hudAnimState.palmY * sY;
+        const pr = hudAnimState.palmR * sX;
+
+        // 2. Cyberpunk Corner Brackets on Bounding Box
+        ctx.strokeStyle = mainColor;
+        ctx.lineWidth = 1.5;
+        const cLen = Math.min(14, bw * 0.25, bh * 0.25);
+        ctx.beginPath(); ctx.moveTo(bx, by + cLen); ctx.lineTo(bx, by); ctx.lineTo(bx + cLen, by); ctx.stroke();
+        ctx.beginPath(); ctx.moveTo(bx + bw - cLen, by); ctx.lineTo(bx + bw, by); ctx.lineTo(bx + bw, by + cLen); ctx.stroke();
+        ctx.beginPath(); ctx.moveTo(bx, by + bh - cLen); ctx.lineTo(bx, by + bh); ctx.lineTo(bx + cLen, by + bh); ctx.stroke();
+        ctx.beginPath(); ctx.moveTo(bx + bw - cLen, by + bh); ctx.lineTo(bx + bw, by + bh); ctx.lineTo(bx + bw, by + bh - cLen); ctx.stroke();
+
+        // 3. Wrist Stem Line
+        ctx.strokeStyle = 'rgba(56, 189, 248, 0.35)';
+        ctx.lineWidth = 1;
+        ctx.setLineDash([2, 3]);
+        ctx.beginPath();
+        ctx.moveTo(px, py);
+        ctx.lineTo(hudAnimState.wristX * sX, hudAnimState.wristY * sY);
+        ctx.stroke();
+        ctx.setLineDash([]);
+
+        // 4. Rotating Cyber Reticle around Palm Core
+        const now = Date.now();
+        const reticleAngle = (now / 1200) * (2 * Math.PI);
+        ctx.strokeStyle = mainColor;
+        ctx.lineWidth = 1.5;
+        ctx.beginPath();
+        ctx.arc(px, py, pr, reticleAngle, reticleAngle + Math.PI * 1.5);
+        ctx.stroke();
+
+        ctx.fillStyle = '#f59e0b';
+        ctx.beginPath();
+        ctx.arc(px, py, 3.5, 0, 2 * Math.PI);
+        ctx.fill();
+
+        // 5. Skeleton Bones & Fingertip Landmarks (Lerp-smoothed)
+        hudAnimState.fingers.forEach((f, idx) => {
+            const fx = f.x * sX;
+            const fy = f.y * sY;
+            const fbx = f.bx * sX;
+            const fby = f.by * sY;
+
+            ctx.strokeStyle = glowColor;
+            ctx.lineWidth = 3;
+            ctx.beginPath(); ctx.moveTo(px, py); ctx.lineTo(fbx, fby); ctx.stroke();
+
+            ctx.strokeStyle = mainColor;
+            ctx.lineWidth = 2.5;
+            ctx.beginPath(); ctx.moveTo(fbx, fby); ctx.lineTo(fx, fy); ctx.stroke();
+
+            ctx.fillStyle = mainColor;
+            ctx.beginPath(); ctx.arc(fx, fy, 5.5, 0, 2 * Math.PI); ctx.fill();
+            ctx.strokeStyle = '#ffffff'; ctx.lineWidth = 1.5; ctx.stroke();
+
+            const pulseR = 7 + Math.sin(now / 150 + idx) * 2;
+            ctx.strokeStyle = glowColor;
+            ctx.lineWidth = 1;
+            ctx.beginPath(); ctx.arc(fx, fy, pulseR, 0, 2 * Math.PI); ctx.stroke();
+        });
+
+        // 6. Interdigital Valley (Peace Sign)
+        if (targetHudState.valley) {
+            ctx.fillStyle = '#ec4899';
+            ctx.beginPath();
+            ctx.arc(targetHudState.valley.x * sX, targetHudState.valley.y * sY, 4, 0, 2 * Math.PI);
+            ctx.fill();
+        }
+
+        // 7. Floating Status Label & Circular Hold Progress Meter
+        if (count === 1 || count === 2) {
+            const isExecuted = (lastTriggeredGesture === count);
+            const tag = isExecuted ?
+                (count === 1 ? '☝️ 1 FINGER: TIME [ON SCREEN]' : '✌️ 2 FINGERS: WEATHER [ON SCREEN]') :
+                (count === 1 ? '☝️ 1 FINGER: TIME' : '✌️ 2 FINGERS: WEATHER');
+            ctx.font = 'bold 11px Orbitron, sans-serif';
+            ctx.fillStyle = mainColor;
+            ctx.fillText(tag, bx, Math.max(16, by - 8));
+
+            if (isExecuted) {
+                ctx.strokeStyle = mainColor;
+                ctx.lineWidth = 3;
+                ctx.beginPath();
+                ctx.arc(px, py, pr + 6, 0, 2 * Math.PI);
+                ctx.stroke();
+
+                ctx.font = 'bold 9px Orbitron, sans-serif';
+                ctx.fillStyle = '#ffffff';
+                ctx.fillText('ACTIVE', px - 18, py + pr + 16);
+            } else if (candidateFingerCount === count && candidateStartTime > 0) {
+                const prog = Math.min(1.0, (now - candidateStartTime) / GESTURE_CONFIRM_MS);
+                
+                // Track ring
+                ctx.strokeStyle = 'rgba(15, 23, 42, 0.7)';
+                ctx.lineWidth = 4;
+                ctx.beginPath();
+                ctx.arc(px, py, pr + 6, 0, 2 * Math.PI);
+                ctx.stroke();
+
+                // Glowing progress arc
+                ctx.strokeStyle = mainColor;
+                ctx.lineWidth = 4;
+                ctx.beginPath();
+                ctx.arc(px, py, pr + 6, -Math.PI / 2, -Math.PI / 2 + prog * 2 * Math.PI);
+                ctx.stroke();
+
+                // Percentage text
+                ctx.font = 'bold 9px Orbitron, sans-serif';
+                ctx.fillStyle = '#ffffff';
+                ctx.fillText(Math.round(prog * 100) + '%', px - 10, py + pr + 16);
+            }
+        }
+
+        // 8. Shockwave Ripple Burst on Validation
+        if (hudAnimState.burstAlpha > 0.02) {
+            ctx.strokeStyle = hudAnimState.burstColor;
+            ctx.lineWidth = 3;
+            ctx.globalAlpha = hudAnimState.burstAlpha;
+            ctx.beginPath();
+            ctx.arc(px, py, hudAnimState.burstRadius, 0, 2 * Math.PI);
+            ctx.stroke();
+            hudAnimState.burstRadius += 3.5;
+            hudAnimState.burstAlpha *= 0.88;
+        }
+
+        ctx.restore();
+    }
+    requestAnimationFrame(renderHud);
+}
+
+function resetFingerHoldState() {
+    candidateFingerCount = 0;
+    candidateStartTime = 0;
+}
+
+function onOneFingerGesture() {
+    let now = new Date();
+    let hours = now.getHours() % 12 || 12;
+    let mins = now.getMinutes() < 10 ? '0' + now.getMinutes() : now.getMinutes();
+    let ampm = now.getHours() >= 12 ? 'PM' : 'AM';
+    let timeStr = `${hours}:${mins} ${ampm}`;
+
+    showGestureBadge(`✨ <b>1 Finger Validated!</b> Routed Current Time (<b>${timeStr}</b>) to OLED (5s)`, true);
+    
+    // Direct Route to Robot Physical OLED Screen
+    fetch(`${API_BASE}/bot_action?a=finger&count=1&t=${encodeURIComponent(timeStr)}`).catch(() => {});
+    
+    // Local voice response
+    executeBotResponse(`[time] এখন সময় ${timeStr}`);
+}
+
+function onTwoFingerGesture() {
+    let weatherText = `${currentTemp} C`;
+    showGestureBadge(`✨ <b>2 Fingers Validated!</b> Routed Weather Forecast (<b>${currentTemp}°C</b>) to OLED (5s)`, true);
+    
+    // Direct Route to Robot Physical OLED Screen
+    fetch(`${API_BASE}/bot_action?a=finger&count=2&t=${encodeURIComponent(weatherText)}`).catch(() => {});
+    
+    // Local voice response
+    executeBotResponse(`[weather] ${weatherSummary}`);
+}
+
+function triggerTimeAction() {
+    onOneFingerGesture();
+}
+
+function triggerWeatherAction() {
+    onTwoFingerGesture();
+}
+
+// ==========================================
+// 9. AI CHAT & BROWSER VOICE
+// ==========================================
+const chatBox = document.getElementById('chatBox');
+const listenStatus = document.getElementById('listenStatus');
+const btnMic = document.getElementById('btnMic');
+
+const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+const recognition = new SpeechRecognition();
+recognition.lang = 'bn-BD';
+recognition.interimResults = false;
+recognition.maxAlternatives = 1;
+
+recognition.onstart = function() {
+    isListening = true;
+    listenStatus.innerText = "Listening...";
+    listenStatus.className = "text-xs text-red-400 mb-2 h-4 font-bold";
+    btnMic.classList.add('recording-pulse', 'bg-red-500/20', 'border-red-500', 'text-red-500');
+    btnMic.classList.remove('bg-slate-700', 'border-slate-600', 'text-slate-300');
+};
+
+recognition.onresult = function(event) {
+    const text = event.results[0][0].transcript;
+    appendMsg(text, 'user');
+    processAI(text);
+};
+
+recognition.onerror = function(event) {
+    listenStatus.innerText = "Error: " + event.error;
+    stopMicUI();
+};
+
+recognition.onend = function() {
+    stopMicUI();
+    if(autoListenMode && !synth.speaking) {
+        setTimeout(() => { if(autoListenMode) recognition.start(); }, 500);
+    }
+};
+
+function toggleListening() {
+    if(isListening) {
+        recognition.stop();
+    } else {
+        recognition.start();
+    }
+}
+
+function stopMicUI() {
+    isListening = false;
+    listenStatus.innerText = autoListenMode ? "Waiting to listen..." : "Browser Mic Ready...";
+    listenStatus.className = "text-xs text-sky-400 mb-2 h-4 font-medium";
+    btnMic.classList.remove('recording-pulse', 'bg-red-500/20', 'border-red-500', 'text-red-500');
+    btnMic.classList.add('bg-slate-700', 'border-slate-600', 'text-slate-300');
+}
+
+function sendChat() {
+    const inp = document.getElementById('txtInput');
+    const text = inp.value.trim();
+    if(!text) return;
+    inp.value = '';
+    appendMsg(text, 'user');
+    processAI(text);
+}
+
+function appendMsg(text, type) {
+    const div = document.createElement('div');
+    div.className = "flex gap-2 " + (type==='user' ? "flex-row-reverse" : "");
+    let icon = type==='user' ? '<div class="w-8 h-8 rounded-xl bg-slate-600 flex-shrink-0 flex items-center justify-center text-xs"><i class="fa-solid fa-user"></i></div>' : '<div class="w-8 h-8 rounded-xl bg-sky-500 flex-shrink-0 flex items-center justify-center text-xs"><i class="fa-solid fa-robot"></i></div>';
+    let msgClass = type==='user' ? 'msg-user' : 'msg-bot';
+    
+    div.innerHTML = `${icon} <div class="${msgClass} p-3 text-sm shadow-md leading-relaxed">${text}</div>`;
+    chatBox.appendChild(div);
+    chatBox.scrollTop = chatBox.scrollHeight;
+}
+
+const synth = window.speechSynthesis;
+function speak(text) {
+    if(synth.speaking) synth.cancel();
+    const cleanText = text.replace(/\[.*?\]/g, '').trim();
+    const utterance = new SpeechSynthesisUtterance(cleanText);
+    utterance.lang = 'bn-BD';
+    utterance.rate = 1.1;
+    utterance.pitch = 1.2;
+    
+    utterance.onstart = () => { if(isListening) recognition.stop(); };
+    utterance.onend = () => {
+        if(autoListenMode) {
+            setTimeout(() => { recognition.start(); }, 500);
+        }
+    };
+    synth.speak(utterance);
+}
+
+async function processAI(text) {
+    appendMsg('<i class="fa-solid fa-circle-notch fa-spin"></i> Thinking...', 'bot');
+    
+    let t = text.toLowerCase();
+    let localResponse = null;
+    let localTag = "";
+    if (t.includes('হ্যালো')||t.includes('hello')||t.includes('হাই')||t.includes('hi')) { localResponse = "হাই! আমি অ্যাভেন্টো!"; localTag = "wave"; }
+    else if (t.includes('ব্যাং')||t.includes('bang')||t.includes('গুলি')) { localResponse = "হ্যান্ডস আপ! আমাকে মেরো না!"; localTag = "bang"; }
+    else if (t.includes('নাচ')||t.includes('dance')) { localResponse = "চলো একটু নাচি!"; localTag = "dance"; }
+    else if (t.includes('ঘুমাও')||t.includes('sleep')) { localResponse = "ঠিক আছে... ঘুমিয়ে পড়লাম।"; localTag = "sleep"; }
+    else if (t.includes('জাগো')||t.includes('wake')) { localResponse = "আমি জেগে উঠেছি!"; localTag = "wake"; }
+    else if (t.includes('পোমোডোরো') || t.includes('pomodoro') || t.includes('ফোকাস মোড') || t.includes('focus')) {
+        chatBox.lastChild.remove();
+        startPomodoroFocus();
+        return;
+    }
+    else if (t.includes('ব্রেক') || t.includes('break')) {
+        chatBox.lastChild.remove();
+        startPomodoroBreak();
+        return;
+    }
+    
+    if(localResponse) {
+        chatBox.lastChild.remove();
+        executeBotResponse(`[${localTag}] ${localResponse}`);
+        return;
+    }
+
+    // Call Gemini 2.5 Flash
+    const url = "https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=" + API_KEY;
+    try {
+        const res = await fetch(url, {
+            method: 'POST', headers: {'Content-Type':'application/json'},
+            body: JSON.stringify({
+                system_instruction: {parts:[{text: SYS_PROMPT + weatherContext}]},
+                contents: [{role:"user", parts:[{text}]}],
+                generationConfig: {maxOutputTokens:150, temperature:0.8, thinkingConfig: {thinkingBudget: 0}}
+            })
+        });
+        const data = await res.json();
+        chatBox.lastChild.remove();
+        
+        if (data.error) {
+            executeBotResponse(`[curious] API Error: ${data.error.message}`);
+        } else if (data.candidates && data.candidates.length > 0) {
+            executeBotResponse(data.candidates[0].content.parts[0].text);
+        } else {
+            executeBotResponse("[sentry] No response.");
+        }
+    } catch(e) {
+        chatBox.lastChild.remove();
+        executeBotResponse(`[sentry] Network Error: ${e.message}`);
+    }
+}
+
+function executeBotResponse(fullText) {
+    appendMsg(fullText, 'bot');
+    speak(fullText);
+    
+    let tag = "nod";
+    const tagMatch = fullText.match(/\[(.*?)\]/);
+    if(tagMatch) tag = tagMatch[1];
+    
+    let subtitle = fullText;
+    if (tag === 'time') {
+        let now = new Date();
+        let hours = now.getHours() % 12 || 12;
+        let mins = now.getMinutes() < 10 ? '0' + now.getMinutes() : now.getMinutes();
+        let ampm = now.getHours() >= 12 ? 'PM' : 'AM';
+        subtitle = `${hours}:${mins} ${ampm}`;
+    } else if (tag === 'weather') {
+        subtitle = `${currentTemp}C Dhaka`;
+    }
+    
+    let cleanText = subtitle.replace(/\[.*?\]/g, '').trim();
+    if (isOledSyncEnabled) {
+        fetch(`/bot_action?a=${tag}&t=${encodeURIComponent(cleanText)}`).catch(()=>{});
+    }
+}
+
+function addReminder() {
+    const rTime = document.getElementById('remTime').value;
+    const rText = document.getElementById('remText').value;
+    if(!rTime || !rText) return;
+    
+    const now = new Date();
+    const [h, m] = rTime.split(':');
+    let rDate = new Date();
+    rDate.setHours(h, m, 0, 0);
+    if(rDate < now) rDate.setDate(rDate.getDate() + 1);
+    
+    reminders.push({time: rDate.getTime(), text: rText, done: false});
+    
+    document.getElementById('remTime').value = '';
+    document.getElementById('remText').value = '';
+    renderReminders();
+    executeBotResponse(`[nod] ওকে, আমি আপনাকে ${rTime} তে মনে করিয়ে দেব।`);
+}
+
+function renderReminders() {
+    const list = document.getElementById('remList');
+    list.innerHTML = '';
+    reminders.filter(r => !r.done).forEach(r => {
+        const d = new Date(r.time);
+        list.innerHTML += `<li class="bg-slate-800/80 p-2 rounded-xl border border-slate-700/60 flex items-center justify-between"><span class="flex items-center gap-1.5"><i class="fa-regular fa-clock text-sky-400"></i> ${d.toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})} - ${r.text}</span></li>`;
+    });
+}
+
+function checkReminders() {
+    const now = Date.now();
+    reminders.forEach(r => {
+        if(!r.done && now >= r.time) {
+            r.done = true;
+            executeBotResponse(`[happy] রিমাইন্ডার! আপনার একটি কাজ আছে: ${r.text}`);
+            renderReminders();
+        }
+    });
+}
+
+// ==========================================
+// 10. POMODORO FOCUS BUDDY
+// ==========================================
+let pomoState = 'idle';
+let pomoSecondsLeft = 25 * 60;
+let pomoTimerInterval = null;
+let completedPomodoros = 0;
+
+function updatePomoDisplay() {
+    let m = Math.floor(pomoSecondsLeft / 60);
+    let s = pomoSecondsLeft % 60;
+    let mStr = m < 10 ? '0' + m : m;
+    let sStr = s < 10 ? '0' + s : s;
+    const timeElem = document.getElementById('pomoTimeDisplay');
+    const badge = document.getElementById('pomoPhaseBadge');
+    const btn = document.getElementById('btnPomoStart');
+    
+    if (timeElem) timeElem.innerText = `${mStr}:${sStr}`;
+    
+    if (badge && btn) {
+        if (pomoState === 'running') {
+            badge.innerText = '🎯 FOCUS';
+            badge.className = 'text-[10px] uppercase font-bold tracking-wider px-2 py-0.5 rounded bg-rose-500/20 text-rose-300 border border-rose-500/30';
+            btn.innerHTML = '<i class="fa-solid fa-pause mr-1"></i> Pause';
+            btn.className = 'px-3.5 py-2 bg-amber-600 hover:bg-amber-500 text-white rounded-xl text-xs font-bold transition-all';
+        } else if (pomoState === 'paused') {
+            badge.innerText = '⏸️ PAUSED';
+            badge.className = 'text-[10px] uppercase font-bold tracking-wider px-2 py-0.5 rounded bg-amber-500/20 text-amber-300 border border-amber-500/30';
+            btn.innerHTML = '<i class="fa-solid fa-play mr-1"></i> Resume';
+            btn.className = 'px-3.5 py-2 bg-rose-600 hover:bg-rose-500 text-white rounded-xl text-xs font-bold transition-all';
+        } else if (pomoState === 'break') {
+            badge.innerText = '☕ BREAK';
+            badge.className = 'text-[10px] uppercase font-bold tracking-wider px-2 py-0.5 rounded bg-emerald-500/20 text-emerald-300 border border-emerald-500/30';
+            btn.innerHTML = '<i class="fa-solid fa-pause mr-1"></i> Pause';
+            btn.className = 'px-3.5 py-2 bg-amber-600 hover:bg-amber-500 text-white rounded-xl text-xs font-bold transition-all';
+        } else {
+            badge.innerText = 'IDLE';
+            badge.className = 'text-[10px] uppercase font-bold tracking-wider px-2 py-0.5 rounded bg-slate-700 text-slate-300 border border-slate-600';
+            btn.innerHTML = '<i class="fa-solid fa-play mr-1"></i> Start';
+            btn.className = 'px-3.5 py-2 bg-rose-600 hover:bg-rose-500 text-white rounded-xl text-xs font-bold transition-all shadow-[0_0_10px_rgba(244,63,94,0.3)]';
+        }
+    }
+}
+
+function togglePomodoro() {
+    if (pomoState === 'running' || pomoState === 'break') {
+        pausePomodoro();
+    } else {
+        startPomodoroFocus();
+    }
+}
+
+function startPomodoroFocus() {
+    if (pomoState !== 'paused') {
+        pomoSecondsLeft = 25 * 60;
+        executeBotResponse("[curious] পোমোডোরো ফোকাস সেশন শুরু হলো! ২৫ মিনিট সম্পূর্ণ মনোযোগ দিয়ে কাজ করুন।");
+    }
+    pomoState = 'running';
+    clearInterval(pomoTimerInterval);
+    pomoTimerInterval = setInterval(pomoTick, 1000);
+    updatePomoDisplay();
+    if (isOledSyncEnabled) fetch(`/bot_action?a=curious&t=FOCUS%2025m`).catch(()=>{});
+}
+
+function pausePomodoro() {
+    pomoState = 'paused';
+    clearInterval(pomoTimerInterval);
+    updatePomoDisplay();
+    if (isOledSyncEnabled) fetch(`/bot_action?a=nod&t=PAUSED`).catch(()=>{});
+}
+
+function resetPomodoro() {
+    clearInterval(pomoTimerInterval);
+    pomoState = 'idle';
+    pomoSecondsLeft = 25 * 60;
+    updatePomoDisplay();
+    if (isOledSyncEnabled) fetch(`/bot_action?a=happy&t=Ready`).catch(()=>{});
+}
+
+function startPomodoroBreak() {
+    clearInterval(pomoTimerInterval);
+    pomoState = 'break';
+    pomoSecondsLeft = 5 * 60;
+    pomoTimerInterval = setInterval(pomoTick, 1000);
+    updatePomoDisplay();
+    executeBotResponse("[happy] ৫ মিনিটের ব্রেক টাইম শুরু! একটু হেঁটে আসুন, পানি খান এবং বিশ্রাম নিন।");
+    if (isOledSyncEnabled) fetch(`/bot_action?a=happy&t=BREAK%205m`).catch(()=>{});
+}
+
+function pomoTick() {
+    if (pomoSecondsLeft > 0) {
+        pomoSecondsLeft--;
+        updatePomoDisplay();
+        
+        if (pomoSecondsLeft % 60 === 0 && isOledSyncEnabled) {
+            let m = Math.floor(pomoSecondsLeft / 60);
+            let tag = (pomoState === 'break') ? 'BREAK' : 'FOCUS';
+            fetch(`/bot_action?a=${(pomoState === 'break' ? 'happy' : 'curious')}&t=${tag}%20${m}m`).catch(()=>{});
+        }
+    } else {
+        clearInterval(pomoTimerInterval);
+        if (pomoState === 'running') {
+            completedPomodoros++;
+            renderTomatoes();
+            executeBotResponse("[wave] সাবাশ! আপনার ২৫ মিনিটের ফোকাস সেশন সফলভাবে সম্পন্ন হয়েছে! এবার ৫ মিনিটের ব্রেক নিন।");
+            startPomodoroBreak();
+        } else if (pomoState === 'break') {
+            executeBotResponse("[nod] ব্রেক টাইম শেষ! চলুন আবার কাজে ফোকাস করা যাক। আপনি প্রস্তুত হলে বলুন।");
+            resetPomodoro();
+        }
+    }
+}
+
+function renderTomatoes() {
+    const elem = document.getElementById('pomoTomatoes');
+    if (elem) {
+        elem.innerText = '🍅'.repeat(completedPomodoros) || 'None yet';
+    }
+}
+
+// ==========================================
+// 10. PROGRESSIVE WEB APP & WORLDWIDE RELAY
+// ==========================================
+let deferredPrompt = null;
+const btnInstall = document.getElementById('btnPwaInstall');
+
+window.addEventListener('beforeinstallprompt', (e) => {
+    e.preventDefault();
+    deferredPrompt = e;
+    if (btnInstall) {
+        btnInstall.classList.remove('hidden');
+        btnInstall.classList.add('flex');
+    }
+});
+
+if (btnInstall) {
+    btnInstall.addEventListener('click', async () => {
+        if (!deferredPrompt) return;
+        deferredPrompt.prompt();
+        const { outcome } = await deferredPrompt.userChoice;
+        console.log('[PWA] User choice:', outcome);
+        deferredPrompt = null;
+        btnInstall.classList.add('hidden');
+        btnInstall.classList.remove('flex');
+    });
+}
+
+// Service Worker Registration
+if ('serviceWorker' in navigator) {
+    window.addEventListener('load', () => {
+        navigator.serviceWorker.register('/sw.js').then(reg => {
+            console.log('✅ [PWA] Service Worker active:', reg.scope);
+        }).catch(err => {
+            console.warn('[PWA] Service Worker registration note:', err);
+        });
+    });
+}
+
+// High-Speed WebSocket Worldwide Relay Client
+let relayWs = null;
+let currentFrameUrl = null;
+
+function initWorldwideRelay() {
+    if (!window.location.protocol.startsWith('http')) return;
+    const isHttps = window.location.protocol === 'https:';
+    const wsProto = isHttps ? 'wss://' : 'ws://';
+    const wsUrl = wsProto + window.location.host + '/ws/client';
+
+    try {
+        relayWs = new WebSocket(wsUrl);
+        relayWs.binaryType = 'arraybuffer';
+
+        relayWs.onopen = () => {
+            console.log('🚀 [Relay] Connected to Worldwide Cloud Relay!');
+            const pulse = document.getElementById('metricPulse');
+            if (pulse) {
+                pulse.innerHTML = '<span class="w-1.5 h-1.5 rounded-full bg-cyan-400 animate-ping"></span> WORLDWIDE LIVE';
+                pulse.className = "text-[10px] font-mono px-2 py-0.5 rounded bg-cyan-500/10 text-cyan-300 border border-cyan-500/30 flex items-center gap-1";
+            }
+        };
+
+        relayWs.onmessage = (event) => {
+            if (typeof event.data === 'string') {
+                try {
+                    const msg = JSON.parse(event.data);
+                    if (msg.type === 'telemetry' && msg.data) {
+                        applyTelemetryData(msg.data);
+                    }
+                } catch(e){}
+            } else if (event.data instanceof ArrayBuffer) {
+                // Incoming JPEG Video Frame over WebSocket (Sub-50ms)
+                const streamImg = document.getElementById('camStream');
+                if (streamImg) {
+                    const blob = new Blob([event.data], { type: 'image/jpeg' });
+                    const newUrl = URL.createObjectURL(blob);
+                    streamImg.src = newUrl;
+                    if (currentFrameUrl) {
+                        URL.revokeObjectURL(currentFrameUrl);
+                    }
+                    currentFrameUrl = newUrl;
+                }
+            }
+        };
+
+        relayWs.onclose = () => {
+            console.warn('⚠️ [Relay] WebSocket disconnected, retrying in 2.5s...');
+            setTimeout(initWorldwideRelay, 2500);
+        };
+
+        relayWs.onerror = (err) => {
+            // Silently fallback to standard HTTP streaming
+        };
+    } catch (e) {
+        console.warn('Relay WS init notice:', e);
+    }
+}
+
+// Start Worldwide Relay on load
+setTimeout(initWorldwideRelay, 500);
+
+</script>
+</body>
+</html>

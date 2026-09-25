@@ -1,0 +1,12 @@
+services:
+  - type: web
+    name: avento-cloud-relay
+    env: node
+    plan: free
+    buildCommand: npm install
+    startCommand: node server.js
+    envVars:
+      - key: ROBOT_TOKEN
+        value: avento_secret_2026
+      - key: PORT
+        value: 3000
