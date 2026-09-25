@@ -327,6 +327,17 @@ app.get('/cam_ctrl', (req, res) => {
     res.send(sent ? "OK" : "QUEUED_ROBOT_OFFLINE");
 });
 
+// Set WiFi endpoint
+app.get('/set_wifi', (req, res) => {
+    const ssid = req.query.ssid || '';
+    const pass = req.query.pass || '';
+    if (!ssid) return res.status(400).send("Missing ssid parameter");
+    const cmd = { type: 'set_wifi', ssid, pass };
+    const sent = forwardCommandToRobot(cmd);
+    res.set('Access-Control-Allow-Origin', '*');
+    res.send(sent ? "WiFi configuration sent to robot! Reconnecting..." : "QUEUED_ROBOT_OFFLINE");
+});
+
 // System Status endpoint
 app.get('/api/status', (req, res) => {
     res.json({
