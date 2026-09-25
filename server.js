@@ -58,6 +58,15 @@ let latestMetrics = {
     last_seen: 0
 };
 
+// Server Event Log Ring Buffer for Remote Diagnostics
+const eventLogs = [];
+function addServerLog(msg) {
+    const entry = `[${new Date().toISOString()}] ${msg}`;
+    console.log(entry);
+    eventLogs.push(entry);
+    if (eventLogs.length > 50) eventLogs.shift();
+}
+
 // MJPEG Stream Client response objects
 const mjpegClients = new Set();
 
@@ -70,13 +79,14 @@ wss.on('connection', (ws, req) => {
     // 1. ESP32 ROBOT CONNECTION
     if (pathname === '/ws/robot') {
         if (token && token !== ROBOT_TOKEN) {
-            console.warn(`[Relay] Robot rejected: Invalid token from ${req.socket.remoteAddress}`);
+            addServerLog(`Robot rejected: Invalid token from ${req.socket.remoteAddress}`);
             ws.close(4001, 'Unauthorized');
             return;
         }
 
-        console.log(`🤖 [Relay] ESP32 Robot connected from ${req.socket.remoteAddress}`);
+        addServerLog(`🤖 ESP32 Robot connected from ${req.socket.remoteAddress}`);
         if (robotWs && robotWs !== ws && robotWs.readyState === WebSocket.OPEN) {
+            addServerLog('Closing previous robot socket instance');
             robotWs.close();
         }
         robotWs = ws;
@@ -131,8 +141,9 @@ wss.on('connection', (ws, req) => {
             }
         });
 
-        ws.on('close', () => {
-            console.log('⚠️ [Relay] ESP32 Robot disconnected');
+        ws.on('close', (code, reason) => {
+            const rStr = reason ? reason.toString() : '';
+            addServerLog(`⚠️ ESP32 Robot disconnected: code=${code}, reason=${rStr}`);
             if (robotWs === ws) {
                 robotWs = null;
                 latestMetrics.robot_online = false;
@@ -141,7 +152,7 @@ wss.on('connection', (ws, req) => {
         });
 
         ws.on('error', (err) => {
-            console.error('Robot WS error:', err);
+            addServerLog(`❌ Robot WS error: ${err.message}`);
         });
     }
 
@@ -313,7 +324,8 @@ app.get('/api/status', (req, res) => {
         robot_online: !!(robotWs && robotWs.readyState === WebSocket.OPEN),
         active_web_clients: clientSockets.size,
         active_mjpeg_streamers: mjpegClients.size,
-        latest_telemetry: latestMetrics
+        latest_telemetry: latestMetrics,
+        recent_logs: eventLogs
     });
 });
 
