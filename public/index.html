@@ -1460,17 +1460,18 @@ window.onload = () => {
     // 1. Restore Custom Widget Layout
     loadSavedLayout();
 
-    // 2. Start Camera on Port 80 (Strictly Same-Origin /stream)
+    // 2. Camera Stream Init (Local LAN uses direct Port 81, Cloud uses sub-50ms WebSocket)
+    const isLocalLan = (window.location.hostname === '192.168.1.3' || window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1');
     const streamImg = document.getElementById('camStream');
-    if (streamImg) {
+    if (streamImg && isLocalLan) {
         streamImg.crossOrigin = "anonymous";
-        const streamUrl = (window.location.protocol.startsWith('http') && window.location.hostname) ? "/stream" : "http://192.168.1.3/stream";
+        const streamUrl = "http://192.168.1.3:81/stream";
         streamImg.src = streamUrl;
         streamImg.onerror = () => {
-            console.warn("Camera stream interrupted, reconnecting...");
+            console.warn("Local camera stream interrupted, reconnecting...");
             setTimeout(() => {
                 streamImg.src = streamUrl + "?t=" + Date.now();
-            }, 1200);
+            }, 1500);
         };
     }
 
@@ -3827,16 +3828,22 @@ function initWorldwideRelay() {
                 } catch(e){}
             } else if (event.data instanceof ArrayBuffer) {
                 // Incoming JPEG Video Frame over WebSocket (Sub-50ms)
+                const recBadge = document.getElementById('hudRecBadge');
+                if (recBadge && recBadge.innerText !== 'CLOUD LIVE') {
+                    recBadge.innerHTML = '<span class="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse"></span> CLOUD LIVE';
+                }
+
                 const blob = new Blob([event.data], { type: 'image/jpeg' });
                 const streamImg = document.getElementById('camStream');
                 if (streamImg) {
                     const newUrl = URL.createObjectURL(blob);
                     const oldUrl = currentFrameUrl;
+                    currentFrameUrl = newUrl;
                     streamImg.onload = () => {
                         if (oldUrl) URL.revokeObjectURL(oldUrl);
                     };
+                    streamImg.onerror = null;
                     streamImg.src = newUrl;
-                    currentFrameUrl = newUrl;
                 }
 
                 // Sub-50ms Zero-Latency Hardware-Decoded Hand Gesture AI Pipeline
