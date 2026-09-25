@@ -42,7 +42,7 @@
             box-shadow: 0 0 18px rgba(244, 63, 94, 0.35), inset 0 0 10px rgba(244, 63, 94, 0.15);
             border: 2px solid rgba(244, 63, 94, 0.5);
         }
-        .stream-container { position: relative; width: 100%; max-width: 440px; margin: 0 auto; border-radius: 12px; overflow: hidden; transform: translateZ(0); }
+        .stream-container { position: relative; width: 100%; max-width: 440px; margin: 0 auto; border-radius: 12px; overflow: hidden; transform: translateZ(0); aspect-ratio: 4 / 3; min-height: 240px; background: #050b14; }
         #camStream { width: 100%; display: block; border-radius: 12px; transform: translateZ(0); backface-visibility: hidden; image-rendering: auto; filter: brightness(1.35) contrast(1.12) saturate(1.18); }
         #canvasOverlay { position: absolute; top: 0; left: 0; width: 100%; height: 100%; z-index: 10; pointer-events: none; transform: translateZ(0); }
         .recording-pulse { animation: pulse-red 1.5s infinite; }
@@ -1207,19 +1207,33 @@ window.onload = () => {
     // 1. Restore Custom Widget Layout
     loadSavedLayout();
 
-    // 2. Camera Stream Init (Local LAN uses direct Port 81, Cloud uses sub-50ms WebSocket)
-    const isLocalLan = (window.location.hostname === '192.168.1.3' || window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1');
+    // 2. Camera Stream Init (Any Local LAN IP uses dynamic Port 81 with Port 80 fallback, Cloud uses WebSocket)
+    const hName = window.location.hostname;
+    const isLocalLan = (hName === 'localhost' || hName === '127.0.0.1' || /^192\.168\./.test(hName) || /^10\./.test(hName) || /^172\.(1[6-9]|2[0-9]|3[0-1])\./.test(hName) || hName.endsWith('.local'));
     const streamImg = document.getElementById('camStream');
-    if (streamImg && isLocalLan) {
-        streamImg.crossOrigin = "anonymous";
-        const streamUrl = "http://192.168.1.3:81/stream";
-        streamImg.src = streamUrl;
-        streamImg.onerror = () => {
-            console.warn("Local camera stream interrupted, reconnecting...");
-            setTimeout(() => {
-                streamImg.src = streamUrl + "?t=" + Date.now();
-            }, 1500);
-        };
+    if (streamImg) {
+        if (isLocalLan) {
+            streamImg.crossOrigin = "anonymous";
+            const port81Url = "http://" + hName + ":81/stream";
+            streamImg.src = port81Url;
+            let retryCount = 0;
+            streamImg.onerror = () => {
+                retryCount++;
+                console.warn("[Local Stream] Port 81 error, attempt " + retryCount);
+                if (retryCount >= 2) {
+                    // Fallback to Port 80 /capture loop for 100% guaranteed feed
+                    streamImg.src = "http://" + hName + "/capture?t=" + Date.now();
+                    setTimeout(() => {
+                        streamImg.src = "http://" + hName + "/capture?t=" + Date.now();
+                    }, 120);
+                } else {
+                    setTimeout(() => { streamImg.src = port81Url + "?t=" + Date.now(); }, 1000);
+                }
+            };
+        } else {
+            // Cloud fallback: if WebSocket takes a moment to connect, load initial snapshot immediately
+            streamImg.src = "/capture?t=" + Date.now();
+        }
     }
 
     initFaceTracking();
@@ -3591,14 +3605,15 @@ function initWorldwideRelay() {
                         applyTelemetryData(msg.data);
                     }
                 } catch(e){}
-            } else if (event.data instanceof ArrayBuffer) {
+            } else if (event.data instanceof ArrayBuffer || event.data instanceof Blob) {
+                const blob = (event.data instanceof Blob) ? event.data : new Blob([event.data], { type: 'image/jpeg' });
                 // Incoming JPEG Video Frame over WebSocket (Sub-50ms)
                 const recBadge = document.getElementById('hudRecBadge');
                 if (recBadge && recBadge.innerText !== 'CLOUD LIVE') {
                     recBadge.innerHTML = '<span class="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse"></span> CLOUD LIVE';
                 }
 
-                const blob = new Blob([event.data], { type: 'image/jpeg' });
+
                 const streamImg = document.getElementById('camStream');
                 if (streamImg) {
                     const newUrl = URL.createObjectURL(blob);
