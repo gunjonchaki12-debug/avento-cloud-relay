@@ -317,6 +317,16 @@ app.get('/track', (req, res) => {
     res.send("OK");
 });
 
+// Camera sensor tuning endpoint
+app.get('/cam_ctrl', (req, res) => {
+    const varName = req.query.var || '';
+    const val = parseInt(req.query.val) || 0;
+    const cmd = { type: 'cam_ctrl', var: varName, val: val };
+    const sent = forwardCommandToRobot(cmd);
+    res.set('Access-Control-Allow-Origin', '*');
+    res.send(sent ? "OK" : "QUEUED_ROBOT_OFFLINE");
+});
+
 // System Status endpoint
 app.get('/api/status', (req, res) => {
     res.json({
