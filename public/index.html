@@ -396,6 +396,21 @@
                 <div id="faceTarget" class="absolute hidden border-2 border-green-400 shadow-[0_0_10px_#4ade80] transition-all duration-100"></div>
             </div>
 
+            <!-- Camera Quick Steering Bar -->
+            <div class="mt-2.5 flex items-center justify-between p-2 bg-slate-800/80 rounded-xl border border-slate-700/60 text-xs">
+                <span class="text-slate-400 font-mono text-[10px] flex items-center gap-1.5">
+                    <i class="fa-solid fa-gamepad text-emerald-400"></i>
+                    <span>সার্ভো কন্ট্রোল:</span>
+                </span>
+                <div class="flex items-center gap-1">
+                    <button onclick="servoStep('left')" title="Pan Left (বামে) [← / A]" class="w-8 h-8 flex items-center justify-center bg-slate-700/80 hover:bg-sky-600 rounded-lg text-white font-bold transition-colors active:scale-95"><i class="fa-solid fa-chevron-left text-xs"></i></button>
+                    <button onclick="servoStep('up')" title="Tilt Up (উপরে) [↑ / W]" class="w-8 h-8 flex items-center justify-center bg-slate-700/80 hover:bg-emerald-600 rounded-lg text-white font-bold transition-colors active:scale-95"><i class="fa-solid fa-chevron-up text-xs"></i></button>
+                    <button onclick="servoCenter()" title="Center (সেন্টার) [Space / C]" class="w-8 h-8 flex items-center justify-center bg-slate-700/80 hover:bg-amber-600 rounded-lg text-white font-bold transition-colors active:scale-95"><i class="fa-solid fa-arrows-to-dot text-xs text-amber-300 hover:text-white"></i></button>
+                    <button onclick="servoStep('down')" title="Tilt Down (নিচে) [↓ / S]" class="w-8 h-8 flex items-center justify-center bg-slate-700/80 hover:bg-emerald-600 rounded-lg text-white font-bold transition-colors active:scale-95"><i class="fa-solid fa-chevron-down text-xs"></i></button>
+                    <button onclick="servoStep('right')" title="Pan Right (ডানে) [→ / D]" class="w-8 h-8 flex items-center justify-center bg-slate-700/80 hover:bg-sky-600 rounded-lg text-white font-bold transition-colors active:scale-95"><i class="fa-solid fa-chevron-right text-xs"></i></button>
+                </div>
+            </div>
+
             <!-- Gesture info and quick actions -->
             <div class="mt-3 flex justify-between items-center px-1 text-xs">
                 <span class="text-slate-400 text-[11px]"><i class="fa-solid fa-camera mr-1 text-sky-400"></i>AI Noise-Filtered Hand Tracking</span>
@@ -635,28 +650,130 @@
         <!-- WIDGET 7: MANUAL PAN / TILT SERVOS -->
         <!-- ========================================== -->
         <section id="widget-servos" class="widget-card glass-panel p-4 rounded-2xl flex flex-col justify-between" data-widget-id="widget-servos" data-widget-title="Pan-Tilt Servo Controls">
+            <!-- Header & Readout -->
             <div class="flex items-center justify-between border-b border-slate-700/60 pb-2 mb-2">
                 <div class="flex items-center gap-2">
-                    <i class="fa-solid fa-gamepad text-emerald-400"></i>
-                    <h2 class="orbitron text-sm font-bold tracking-wide text-emerald-300">MANUAL SERVO GIMBAL</h2>
+                    <i class="fa-solid fa-gamepad text-emerald-400 text-lg"></i>
+                    <div>
+                        <h2 class="orbitron text-sm font-bold tracking-wide text-emerald-300">MANUAL SERVO GIMBAL</h2>
+                        <p class="text-[10px] text-slate-400">ওয়াইফাই ম্যানুয়াল সার্ভো কন্ট্রোল &bull; ১০০% ডাইরেক্ট হ্যান্ডলিং</p>
+                    </div>
                 </div>
-                <div class="text-[11px] text-slate-400 font-mono">Pan: <span id="panVal" class="text-sky-400">90</span>° &bull; Tilt: <span id="tiltVal" class="text-sky-400">90</span>°</div>
+                <div class="flex items-center gap-2 font-mono text-xs">
+                    <span class="px-2 py-0.5 rounded bg-sky-500/10 text-sky-400 border border-sky-500/30">
+                        Pan: <strong id="panVal" class="text-white">90</strong>°
+                    </span>
+                    <span class="px-2 py-0.5 rounded bg-emerald-500/10 text-emerald-400 border border-emerald-500/30">
+                        Tilt: <strong id="tiltVal" class="text-white">90</strong>°
+                    </span>
+                </div>
             </div>
 
-            <!-- Servo D-Pad Controls -->
-            <div class="grid grid-cols-3 gap-2 max-w-[260px] mx-auto my-2 text-center text-xl">
-                <div></div>
-                <button onclick="sendServo(pan, Math.max(30, tilt - 20))" title="Tilt Up" class="bg-slate-800/80 p-3 rounded-xl hover:bg-sky-600 text-slate-200 border border-slate-700 active:scale-95 transition-all"><i class="fa-solid fa-chevron-up"></i></button>
-                <div></div>
-                <button onclick="sendServo(Math.max(20, pan - 25), tilt)" title="Pan Left" class="bg-slate-800/80 p-3 rounded-xl hover:bg-sky-600 text-slate-200 border border-slate-700 active:scale-95 transition-all"><i class="fa-solid fa-chevron-left"></i></button>
-                <button onclick="sendServo(90, 90)" title="Center Head" class="bg-slate-800/80 p-3 rounded-xl hover:bg-sky-600 text-slate-200 border border-slate-700 active:scale-95 transition-all"><i class="fa-solid fa-arrows-to-dot text-sky-400"></i></button>
-                <button onclick="sendServo(Math.min(160, pan + 25), tilt)" title="Pan Right" class="bg-slate-800/80 p-3 rounded-xl hover:bg-sky-600 text-slate-200 border border-slate-700 active:scale-95 transition-all"><i class="fa-solid fa-chevron-right"></i></button>
-                <div></div>
-                <button onclick="sendServo(pan, Math.min(150, tilt + 20))" title="Tilt Down" class="bg-slate-800/80 p-3 rounded-xl hover:bg-sky-600 text-slate-200 border border-slate-700 active:scale-95 transition-all"><i class="fa-solid fa-chevron-down"></i></button>
-                <div></div>
+            <!-- Manual Lock Banner (Suppresses Autonomous Motion) -->
+            <div class="flex items-center justify-between p-2.5 rounded-xl bg-emerald-950/40 border border-emerald-500/30 mb-2">
+                <div class="flex items-center gap-2">
+                    <div id="servoLockDot" class="w-2.5 h-2.5 rounded-full bg-emerald-400 animate-pulse"></div>
+                    <div>
+                        <p id="servoLockStatusText" class="text-xs font-bold text-emerald-300">🔒 ম্যানুয়াল লক: সক্রিয় (অটোনোমাস মুভমেন্ট বন্ধ)</p>
+                        <p class="text-[10px] text-slate-300">সার্ভো নিজে নিজে নড়বে না। শুধুমাত্র আপনার বাটনেই কন্ট্রোল হবে।</p>
+                    </div>
+                </div>
+                <button id="btnToggleServoLock" onclick="toggleServoLock()" class="px-2.5 py-1 rounded-lg text-[10px] font-bold bg-emerald-600 text-white border border-emerald-400 shadow-sm transition-all">
+                    লক করা আছে
+                </button>
             </div>
-            
-            <p class="text-[11px] text-center text-slate-400">Fine-tune robot head angle &bull; Smooth PID transition</p>
+
+            <!-- Main Cyberpunk D-Pad -->
+            <div class="my-2 flex flex-col items-center justify-center">
+                <div class="grid grid-cols-3 gap-2.5 w-64 text-center">
+                    <div></div>
+                    <!-- Tilt Up -->
+                    <button id="btnServoUp" onclick="servoStep('up')" onmousedown="startServoHold('up')" onmouseup="stopServoHold()" onmouseleave="stopServoHold()" ontouchstart="startServoHold('up')" ontouchend="stopServoHold()" title="Tilt Up (উপরে) [Key: ↑ / W]" class="gimbal-btn bg-slate-800/90 hover:bg-emerald-600 text-slate-100 border border-slate-700 hover:border-emerald-400 p-3 rounded-2xl active:scale-95 transition-all shadow-md flex flex-col items-center justify-center gap-0.5 group">
+                        <i class="fa-solid fa-chevron-up text-lg group-hover:-translate-y-0.5 transition-transform text-emerald-400 group-hover:text-white"></i>
+                        <span class="text-[9px] font-mono text-slate-400 group-hover:text-white uppercase font-bold">UP (↑)</span>
+                    </button>
+                    <div></div>
+
+                    <!-- Pan Left -->
+                    <button id="btnServoLeft" onclick="servoStep('left')" onmousedown="startServoHold('left')" onmouseup="stopServoHold()" onmouseleave="stopServoHold()" ontouchstart="startServoHold('left')" ontouchend="stopServoHold()" title="Pan Left (বামে) [Key: ← / A]" class="gimbal-btn bg-slate-800/90 hover:bg-sky-600 text-slate-100 border border-slate-700 hover:border-sky-400 p-3 rounded-2xl active:scale-95 transition-all shadow-md flex flex-col items-center justify-center gap-0.5 group">
+                        <i class="fa-solid fa-chevron-left text-lg group-hover:-translate-x-0.5 transition-transform text-sky-400 group-hover:text-white"></i>
+                        <span class="text-[9px] font-mono text-slate-400 group-hover:text-white uppercase font-bold">LEFT (←)</span>
+                    </button>
+
+                    <!-- Center -->
+                    <button id="btnServoCenter" onclick="servoCenter()" title="Center Position (90°, 90°) [Key: Space / C]" class="gimbal-btn bg-slate-800/90 hover:bg-amber-600 text-slate-100 border border-slate-700 hover:border-amber-400 p-3 rounded-2xl active:scale-95 transition-all shadow-md flex flex-col items-center justify-center gap-0.5 group">
+                        <i class="fa-solid fa-arrows-to-dot text-lg text-amber-400 group-hover:text-white"></i>
+                        <span class="text-[9px] font-mono text-slate-400 group-hover:text-white uppercase font-bold">CENTER</span>
+                    </button>
+
+                    <!-- Pan Right -->
+                    <button id="btnServoRight" onclick="servoStep('right')" onmousedown="startServoHold('right')" onmouseup="stopServoHold()" onmouseleave="stopServoHold()" ontouchstart="startServoHold('right')" ontouchend="stopServoHold()" title="Pan Right (ডানে) [Key: → / D]" class="gimbal-btn bg-slate-800/90 hover:bg-sky-600 text-slate-100 border border-slate-700 hover:border-sky-400 p-3 rounded-2xl active:scale-95 transition-all shadow-md flex flex-col items-center justify-center gap-0.5 group">
+                        <i class="fa-solid fa-chevron-right text-lg group-hover:translate-x-0.5 transition-transform text-sky-400 group-hover:text-white"></i>
+                        <span class="text-[9px] font-mono text-slate-400 group-hover:text-white uppercase font-bold">RIGHT (→)</span>
+                    </button>
+
+                    <div></div>
+                    <!-- Tilt Down -->
+                    <button id="btnServoDown" onclick="servoStep('down')" onmousedown="startServoHold('down')" onmouseup="stopServoHold()" onmouseleave="stopServoHold()" ontouchstart="startServoHold('down')" ontouchend="stopServoHold()" title="Tilt Down (নিচে) [Key: ↓ / S]" class="gimbal-btn bg-slate-800/90 hover:bg-emerald-600 text-slate-100 border border-slate-700 hover:border-emerald-400 p-3 rounded-2xl active:scale-95 transition-all shadow-md flex flex-col items-center justify-center gap-0.5 group">
+                        <i class="fa-solid fa-chevron-down text-lg group-hover:translate-y-0.5 transition-transform text-emerald-400 group-hover:text-white"></i>
+                        <span class="text-[9px] font-mono text-slate-400 group-hover:text-white uppercase font-bold">DOWN (↓)</span>
+                    </button>
+                    <div></div>
+                </div>
+
+                <div class="mt-2 text-[10px] font-mono text-slate-400 flex items-center gap-1.5">
+                    <i class="fa-regular fa-keyboard text-slate-500"></i> কিবোর্ড শর্টকাট: <span class="text-sky-300">←</span> <span class="text-sky-300">→</span> <span class="text-emerald-300">↑</span> <span class="text-emerald-300">↓</span> / <span class="text-amber-300">Space</span> (Center)
+                </div>
+            </div>
+
+            <!-- Step Size & Fine Sliders Controls -->
+            <div class="flex flex-col gap-2 pt-2 border-t border-slate-700/50">
+                <div class="flex items-center justify-between text-xs">
+                    <span class="text-slate-400 font-medium">প্রতি প্রেসে অ্যাঙ্গেল স্টেপ:</span>
+                    <div class="flex gap-1" id="servoStepButtons">
+                        <button onclick="setServoStep(2)" class="btn-servo-step px-2 py-0.5 rounded bg-slate-800 border border-slate-700 text-slate-300 text-[11px] hover:bg-sky-600 transition-colors" data-step="2">2° সূক্ষ্ম</button>
+                        <button onclick="setServoStep(5)" class="btn-servo-step active px-2 py-0.5 rounded bg-sky-600 border border-sky-500 text-white font-bold text-[11px] transition-colors" data-step="5">5° নরমাল</button>
+                        <button onclick="setServoStep(10)" class="btn-servo-step px-2 py-0.5 rounded bg-slate-800 border border-slate-700 text-slate-300 text-[11px] hover:bg-sky-600 transition-colors" data-step="10">10° দ্রুত</button>
+                        <button onclick="setServoStep(20)" class="btn-servo-step px-2 py-0.5 rounded bg-slate-800 border border-slate-700 text-slate-300 text-[11px] hover:bg-sky-600 transition-colors" data-step="20">20° জাম্প</button>
+                    </div>
+                </div>
+
+                <!-- Sliders for Direct Precision Tuning -->
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-2 text-xs bg-slate-800/40 p-2 rounded-xl border border-slate-700/40">
+                    <div>
+                        <div class="flex justify-between text-[11px] text-slate-400 mb-1">
+                            <span>Pan (বাম-ডান): <strong id="panSliderVal" class="text-sky-300 font-mono">90°</strong></span>
+                            <span class="text-[10px] text-slate-500">30° - 150°</span>
+                        </div>
+                        <input type="range" id="panSlider" min="30" max="150" value="90" oninput="onPanSliderInput(this.value)" onchange="onPanSliderCommit(this.value)" class="w-full accent-sky-400 h-1.5 bg-slate-700 rounded-lg cursor-pointer">
+                    </div>
+                    <div>
+                        <div class="flex justify-between text-[11px] text-slate-400 mb-1">
+                            <span>Tilt (উপর-নিচ): <strong id="tiltSliderVal" class="text-emerald-300 font-mono">90°</strong></span>
+                            <span class="text-[10px] text-slate-500">40° - 120°</span>
+                        </div>
+                        <input type="range" id="tiltSlider" min="40" max="120" value="90" oninput="onTiltSliderInput(this.value)" onchange="onTiltSliderCommit(this.value)" class="w-full accent-emerald-400 h-1.5 bg-slate-700 rounded-lg cursor-pointer">
+                    </div>
+                </div>
+
+                <!-- Invert Checkboxes & Presets -->
+                <div class="flex flex-wrap items-center justify-between text-[11px] text-slate-400 gap-1 pt-1">
+                    <div class="flex items-center gap-3">
+                        <label class="flex items-center gap-1 cursor-pointer hover:text-slate-200">
+                            <input type="checkbox" id="invertPan" onchange="saveServoInverts()" class="accent-sky-400 rounded">
+                            <span>ইনভার্ট Pan (বাম ⇄ ডান)</span>
+                        </label>
+                        <label class="flex items-center gap-1 cursor-pointer hover:text-slate-200">
+                            <input type="checkbox" id="invertTilt" onchange="saveServoInverts()" class="accent-emerald-400 rounded">
+                            <span>ইনভার্ট Tilt (উপর ⇄ নিচ)</span>
+                        </label>
+                    </div>
+                    <div class="flex gap-1.5">
+                        <button onclick="sendServo(90, 75)" class="px-2 py-0.5 rounded bg-slate-800 hover:bg-slate-700 border border-slate-700 text-slate-300 text-[10px]">সোজা সামনে</button>
+                        <button onclick="sendServo(90, 115)" class="px-2 py-0.5 rounded bg-slate-800 hover:bg-slate-700 border border-slate-700 text-slate-300 text-[10px]">ডেস্ক ভিউ</button>
+                    </div>
+                </div>
+            </div>
         </section>
 
         <!-- ========================================== -->
@@ -1893,14 +2010,201 @@ function initFaceTracking() {
     }
 }
 
+// ==========================================
+// 7.5 COMPREHENSIVE MANUAL SERVO GIMBAL CONTROLS
+// ==========================================
+let currentServoStep = 5;
+let isServoManualLocked = true;
+let servoHoldInterval = null;
+let isInvertPan = localStorage.getItem('avento_inv_pan') === 'true';
+let isInvertTilt = localStorage.getItem('avento_inv_tilt') === 'true';
+
+function initServoControls() {
+    const invP = document.getElementById('invertPan');
+    const invT = document.getElementById('invertTilt');
+    if (invP) invP.checked = isInvertPan;
+    if (invT) invT.checked = isInvertTilt;
+    updateServoLockBadge();
+}
+
+function saveServoInverts() {
+    const invP = document.getElementById('invertPan');
+    const invT = document.getElementById('invertTilt');
+    isInvertPan = invP ? invP.checked : false;
+    isInvertTilt = invT ? invT.checked : false;
+    localStorage.setItem('avento_inv_pan', isInvertPan);
+    localStorage.setItem('avento_inv_tilt', isInvertTilt);
+}
+
+function setServoStep(step) {
+    currentServoStep = step;
+    document.querySelectorAll('.btn-servo-step').forEach(btn => {
+        if (parseInt(btn.getAttribute('data-step')) === step) {
+            btn.className = "btn-servo-step active px-2 py-0.5 rounded bg-sky-600 border border-sky-500 text-white font-bold text-[11px] transition-colors";
+        } else {
+            btn.className = "btn-servo-step px-2 py-0.5 rounded bg-slate-800 border border-slate-700 text-slate-300 text-[11px] hover:bg-sky-600 transition-colors";
+        }
+    });
+}
+
+function toggleServoLock() {
+    isServoManualLocked = !isServoManualLocked;
+    updateServoLockBadge();
+    fetch(`${API_BASE}/servo?lock=${isServoManualLocked ? 1 : 0}`).catch(()=>{});
+    if (relayWs && relayWs.readyState === WebSocket.OPEN) {
+        relayWs.send(JSON.stringify({ type: 'servo', lock: isServoManualLocked }));
+    }
+}
+
+function updateServoLockBadge() {
+    const dot = document.getElementById('servoLockDot');
+    const txt = document.getElementById('servoLockStatusText');
+    const btn = document.getElementById('btnToggleServoLock');
+    if (isServoManualLocked) {
+        if (dot) dot.className = "w-2.5 h-2.5 rounded-full bg-emerald-400 animate-pulse";
+        if (txt) {
+            txt.innerText = "🔒 ম্যানুয়াল লক: সক্রিয় (অটোনোমাস মুভমেন্ট বন্ধ)";
+            txt.className = "text-xs font-bold text-emerald-300";
+        }
+        if (btn) {
+            btn.innerText = "লক করা আছে (ম্যানুয়াল)";
+            btn.className = "px-2.5 py-1 rounded-lg text-[10px] font-bold bg-emerald-600 text-white border border-emerald-400 shadow-sm";
+        }
+    } else {
+        if (dot) dot.className = "w-2.5 h-2.5 rounded-full bg-amber-400";
+        if (txt) {
+            txt.innerText = "⚠️ অটো মুভমেন্ট সক্রিয় (মুড নাচ/ইমোশন চলবে)";
+            txt.className = "text-xs font-bold text-amber-300";
+        }
+        if (btn) {
+            btn.innerText = "আনলক করা (অটো)";
+            btn.className = "px-2.5 py-1 rounded-lg text-[10px] font-bold bg-amber-600 text-white border border-amber-400 shadow-sm";
+        }
+    }
+}
+
+function servoStep(dir) {
+    let effectiveDir = dir;
+    if (isInvertPan) {
+        if (dir === 'left') effectiveDir = 'right';
+        else if (dir === 'right') effectiveDir = 'left';
+    }
+    if (isInvertTilt) {
+        if (dir === 'up') effectiveDir = 'down';
+        else if (dir === 'down') effectiveDir = 'up';
+    }
+
+    let p = pan;
+    let t = tilt;
+    const step = currentServoStep || 5;
+
+    if (effectiveDir === 'left') {
+        p = Math.max(30, pan - step);
+    } else if (effectiveDir === 'right') {
+        p = Math.min(150, pan + step);
+    } else if (effectiveDir === 'up') {
+        t = Math.max(40, tilt - step);
+    } else if (effectiveDir === 'down') {
+        t = Math.min(120, tilt + step);
+    }
+
+    sendServo(p, t);
+}
+
+function servoCenter() {
+    sendServo(90, 90);
+}
+
+function startServoHold(dir) {
+    stopServoHold();
+    servoHoldInterval = setInterval(() => {
+        servoStep(dir);
+    }, 120);
+}
+
+function stopServoHold() {
+    if (servoHoldInterval) {
+        clearInterval(servoHoldInterval);
+        servoHoldInterval = null;
+    }
+}
+
+function onPanSliderInput(val) {
+    const el = document.getElementById('panSliderVal');
+    if (el) el.innerText = val + '°';
+    const pv = document.getElementById('panVal');
+    if (pv) pv.innerText = val;
+}
+
+function onPanSliderCommit(val) {
+    sendServo(parseInt(val), tilt);
+}
+
+function onTiltSliderInput(val) {
+    const el = document.getElementById('tiltSliderVal');
+    if (el) el.innerText = val + '°';
+    const tv = document.getElementById('tiltVal');
+    if (tv) tv.innerText = val;
+}
+
+function onTiltSliderCommit(val) {
+    sendServo(pan, parseInt(val));
+}
+
 function sendServo(p, t) {
-    pan = p; tilt = t;
+    pan = Math.max(30, Math.min(150, p));
+    tilt = Math.max(40, Math.min(120, t));
+
+    // Update UI elements
     const pv = document.getElementById('panVal');
     const tv = document.getElementById('tiltVal');
-    if (pv) pv.innerText = p;
-    if (tv) tv.innerText = t;
-    fetch(`${API_BASE}/servo?pan=${p}&tilt=${t}`);
+    const ps = document.getElementById('panSlider');
+    const ts = document.getElementById('tiltSlider');
+    const psv = document.getElementById('panSliderVal');
+    const tsv = document.getElementById('tiltSliderVal');
+
+    if (pv) pv.innerText = pan;
+    if (tv) tv.innerText = tilt;
+    if (ps) ps.value = pan;
+    if (ts) ts.value = tilt;
+    if (psv) psv.innerText = pan + '°';
+    if (tsv) tsv.innerText = tilt + '°';
+
+    // Send HTTP command
+    fetch(`${API_BASE}/servo?pan=${pan}&tilt=${tilt}&lock=1`).catch(() => {});
+
+    // Send WebSocket command if connected to cloud relay
+    if (relayWs && relayWs.readyState === WebSocket.OPEN) {
+        relayWs.send(JSON.stringify({ type: 'servo', pan: pan, tilt: tilt, lock: true }));
+    }
 }
+
+// Global Keyboard Handler for Arrow Keys
+window.addEventListener('keydown', (e) => {
+    // Ignore keystrokes when typing in inputs or textareas
+    const tag = e.target?.tagName?.toLowerCase();
+    if (tag === 'input' || tag === 'textarea' || tag === 'select' || e.target?.isContentEditable) {
+        return;
+    }
+
+    if (e.key === 'ArrowLeft' || e.key === 'a' || e.key === 'A') {
+        e.preventDefault();
+        servoStep('left');
+    } else if (e.key === 'ArrowRight' || e.key === 'd' || e.key === 'D') {
+        e.preventDefault();
+        servoStep('right');
+    } else if (e.key === 'ArrowUp' || e.key === 'w' || e.key === 'W') {
+        e.preventDefault();
+        servoStep('up');
+    } else if (e.key === 'ArrowDown' || e.key === 's' || e.key === 'S') {
+        e.preventDefault();
+        servoStep('down');
+    } else if (e.key === ' ' || e.key === 'c' || e.key === 'C') {
+        e.preventDefault();
+        servoCenter();
+    }
+});
+
 
 // ==========================================
 // 8. DEDICATED ROBUST FINGER COUNT GESTURE RECOGNITION MODULE
@@ -3663,7 +3967,32 @@ function initWorldwideRelay() {
     }
 }
 
-// Start Worldwide Relay on load
+function applyTelemetryData(data) {
+    if (!data) return;
+    if (data.battery_pct !== undefined) {
+        const el = document.getElementById('metricBattPct');
+        if (el) el.innerText = data.battery_pct + "%";
+    }
+    if (data.cpu_temp !== undefined) {
+        const el = document.getElementById('metricCpuTemp');
+        if (el) el.innerText = data.cpu_temp.toFixed(1) + "°C";
+    }
+    if (data.free_heap !== undefined) {
+        const el = document.getElementById('metricHeapVal');
+        if (el) el.innerText = Math.round(data.free_heap / 1024) + " KB";
+    }
+    if (data.uptime_s !== undefined && typeof formatUptime === 'function') {
+        const el = document.getElementById('metricUptimeVal');
+        if (el) el.innerText = formatUptime(data.uptime_s);
+    }
+    if (data.servo_lock !== undefined) {
+        isServoManualLocked = (data.servo_lock === true || data.servo_lock === 1);
+        updateServoLockBadge();
+    }
+}
+
+// Start Worldwide Relay & Servo Controls on load
+initServoControls();
 setTimeout(initWorldwideRelay, 500);
 
 </script>

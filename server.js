@@ -295,15 +295,23 @@ app.get('/bot_action', (req, res) => {
 
 // Servo endpoint
 app.get('/servo', (req, res) => {
-    const pan = parseInt(req.query.pan) || 90;
-    const tilt = parseInt(req.query.tilt) || 90;
+    const cmd = { type: 'servo' };
+    if (req.query.pan !== undefined) cmd.pan = parseInt(req.query.pan);
+    if (req.query.tilt !== undefined) cmd.tilt = parseInt(req.query.tilt);
+    if (req.query.dir) cmd.dir = req.query.dir;
+    if (req.query.step !== undefined) cmd.step = parseInt(req.query.step);
+    if (req.query.lock !== undefined) {
+        cmd.lock = (req.query.lock === '1' || req.query.lock === 'true');
+    } else {
+        cmd.lock = true; // Default to manual lock when servo command sent
+    }
 
-    const cmd = { type: 'servo', pan, tilt };
     const sent = forwardCommandToRobot(cmd);
 
     res.set('Access-Control-Allow-Origin', '*');
     res.send(sent ? "OK" : "QUEUED_ROBOT_OFFLINE");
 });
+
 
 // Face tracking point endpoint
 app.get('/track', (req, res) => {
